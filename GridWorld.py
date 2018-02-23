@@ -181,7 +181,6 @@ def create_radio_buttons(row_val):
     Radiobutton(rightFrame, text="Goal", variable=radio_button_value, value=3).grid(row=row_val+4, column=1, sticky=W)
     horizontal_line(row_val+5)
 
-
 initialize_grid_matrix()
 create_grid()
 create_left_side_elements()
@@ -195,17 +194,6 @@ root.mainloop()
 
 
 
-# # Creates the grid legend
-# def create_grid_legend(row_val):
-#     Label(rightFrame, text="Cell Types").grid(row=row_val, column=1, sticky=W)
-#     separator(row_val+1)
-#     Label(rightFrame, text="Clear").grid(row=row_val+2, column=1, sticky=W)
-#     Entry(rightFrame, state='disabled', disabledbackground=Cell.Color.CLEAR, width=2, bd=1).grid(row=row_val+3, column=1, sticky=W)
-#     Label(rightFrame, text="Obstacle").grid(row=row_val+4, column=1, sticky=W)
-#     Entry(rightFrame, state='disabled', disabledbackground=Cell.Color.OBSTACLE, width=2, bd=1).grid(row=row_val+5, column=1, sticky=W)
-#     Label(rightFrame, text="Start").grid(row=row_val+6, column=1, sticky=W)
-#     Entry(rightFrame, state='disabled', disabledbackground=Cell.Color.START, width=2, bd=1).grid(row=row_val+7, column=1, sticky=W)
-#     Label(rightFrame, text="Goal").grid(row=row_val+8, column=1, sticky=W)
-#     Entry(rightFrame, state='disabled', disabledbackground=Cell.Color.GOAL, width=2, bd=1).grid(row=row_val+9, column=1, sticky=W)
+
 
 
