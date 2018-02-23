@@ -1,11 +1,13 @@
 from Tkinter import *
 from tkFileDialog import askopenfilename
 import tkMessageBox
+import Cell
 
 root = Tk()
 root.title("GridWorld HomeWork")
 root.resizable(width=FALSE, height=FALSE)
-cellWidth = 80
+
+cellWidth = Cell.Size.Width
 
 rightFrame = Frame(root)
 rightFrame.pack(side=RIGHT, fill=Y)
@@ -13,8 +15,11 @@ rightFrame.pack(side=RIGHT, fill=Y)
 leftFrame = Frame(root)
 leftFrame.pack(side=LEFT, fill=Y)
 
-var = IntVar()
-var.set(1)
+radio_button_value = IntVar()
+radio_button_value.set(1)
+
+is_start_created = False
+is_goal_created = False
 
 Label(rightFrame, text="    ", fg='white').grid(row=0, column=2, sticky=W)
 Label(rightFrame, text="    ", fg='white').grid(row=0, column=0, sticky=E)
@@ -27,6 +32,7 @@ grid = Canvas(leftFrame, width=800, heigh=800)
 
 gridMatrix = [[0 for row in range(x)] for col in range(y)]
 
+
 # The world grid matrix initializer
 def initialize_grid_matrix():
     for i in range(x):
@@ -37,12 +43,12 @@ def initialize_grid_matrix():
 # Returns a cell color based on the value from the map matrix
 def cell_color(value):
     switcher = {
-        0: "floral white",
-        1: "black",
-        2: "cyan2",
-        3: "sandy brown"
+        0: Cell.Color.CLEAR,
+        1: Cell.Color.OBSTACLE,
+        2: Cell.Color.START,
+        3: Cell.Color.GOAL
     }
-    return switcher.get(value, "floral white")
+    return switcher.get(value, Cell.Color.CLEAR)
 
 
 # Adds the text for QL path planning
@@ -79,7 +85,7 @@ def create_grid():
 
 # opens a map matrix from a file and renders it to the grid
 def open_file():
-    map_file = askopenfilename(title = "Select map file")
+    map_file = askopenfilename(title="Select map file")
     if len(map_file) == 0:
         tkMessageBox.showwarning('No Selection', 'No map file was selected!')
     convert_file_to_matrix(map_file)
@@ -87,8 +93,8 @@ def open_file():
 
 
 # converts a map file content to a grid matrix
-def convert_file_to_matrix(file):
-    content = open(file, "r")
+def convert_file_to_matrix(map_file):
+    content = open(map_file, "r")
     index_i = 0
     for line in content:
         index_j = 0
@@ -105,15 +111,40 @@ def do_nothing():
 
 # Adds the start cell or goal cell via click event
 def add_start_goal_cell(coordination):
-    (i, j) = (coordination.x/80, coordination.y/80)
+    global is_start_created, is_goal_created
+    (i, j) = (coordination.x/cellWidth, coordination.y/cellWidth)
     if (i < 10) & (j < 10):
-        if gridMatrix[j][i] == 0:
-            if var.get() == 2:
-                grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth, fill='yellow', width=1)
-                gridMatrix[j][i] = 2
-            elif var.get() == 3:
-                grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth, fill='red', width=1)
-                gridMatrix[j][i] = 3
+        if gridMatrix[j][i] == Cell.Type.CLEAR:
+            if (radio_button_value.get() == 2) & (is_start_created is False):
+                grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
+                                      fill=Cell.Color.START, width=1)
+                gridMatrix[j][i] = Cell.Type.START
+                is_start_created = True
+            elif (radio_button_value.get() == 3) & (is_goal_created is False):
+                grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
+                                      fill=Cell.Color.GOAL, width=1)
+                gridMatrix[j][i] = Cell.Type.GOAL
+                is_goal_created = True
+
+
+# Resets the start cell or goal cell via click event
+def reset_start_goal_cell(coordination):
+    global is_start_created, is_goal_created
+    (i, j) = (coordination.x/cellWidth, coordination.y/cellWidth)
+    if (i < 10) & (j < 10):
+        if gridMatrix[j][i] == Cell.Type.START:
+            if radio_button_value.get() == 2:
+                grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
+                                      fill=Cell.Color.CLEAR, width=1)
+                gridMatrix[j][i] = Cell.Type.CLEAR
+                is_start_created = False
+        elif gridMatrix[j][i] == Cell.Type.GOAL:
+            if radio_button_value.get() == 3:
+                grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
+                                      fill=Cell.Color.CLEAR, width=1)
+                gridMatrix[j][i] = Cell.Type.CLEAR
+                is_goal_created = False
+
 
 
 def separator(row_val):
@@ -134,13 +165,13 @@ def create_radio_buttons(row_val):
     separator(row_val)
     horizontal_line(row_val+1)
     Label(rightFrame, text="Select Cell Type").grid(row=row_val+2, column=1, sticky=W)
-    Radiobutton(rightFrame, text="Start", variable=var, value=2).grid(row=row_val+3, column=1, sticky=W)
-    Radiobutton(rightFrame, text="Goal", variable=var, value=3).grid(row=row_val+4, column=1, sticky=W)
+    Radiobutton(rightFrame, text="Start", variable=radio_button_value, value=2).grid(row=row_val+3, column=1, sticky=W)
+    Radiobutton(rightFrame, text="Goal", variable=radio_button_value, value=3).grid(row=row_val+4, column=1, sticky=W)
     horizontal_line(14)
 
 
 # Creates and Displays the buttons on the right side of the screen
-def create_side_elements():
+def create_left_side_elements():
     row_val = 4
     create_button("Upload Map", row_val, open_file)
     separator(row_val+1)
@@ -149,14 +180,18 @@ def create_side_elements():
     create_radio_buttons(row_val+4)
 
 
+def create_
+
+
 initialize_grid_matrix()
 create_grid()
-create_side_elements()
+create_left_side_elements()
 
-
-
-
-
+grid.bind('<Button-2>', reset_start_goal_cell)
 grid.bind('<Button-1>', add_start_goal_cell)
 
+
 root.mainloop()
+
+
+
