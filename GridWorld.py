@@ -85,11 +85,14 @@ def create_grid():
 
 # opens a map matrix from a file and renders it to the grid
 def open_file():
+    global is_start_created, is_goal_created
     map_file = askopenfilename(title="Select map file")
     if len(map_file) == 0:
         tkMessageBox.showwarning('No Selection', 'No map file was selected!')
     convert_file_to_matrix(map_file)
     create_grid()
+    is_start_created = False
+    is_goal_created = False
 
 
 # converts a map file content to a grid matrix
@@ -146,7 +149,6 @@ def reset_start_goal_cell(coordination):
                 is_goal_created = False
 
 
-
 def separator(row_val):
     Label(rightFrame, text=" "*33).grid(row=row_val, column=1)
 
@@ -160,16 +162,6 @@ def create_button(text, row_val, command):
     Button(rightFrame, text=text, width=20, command=command).grid(row=row_val, column=1, sticky=W)
 
 
-# Create the radio button for start/goal
-def create_radio_buttons(row_val):
-    separator(row_val)
-    horizontal_line(row_val+1)
-    Label(rightFrame, text="Select Cell Type").grid(row=row_val+2, column=1, sticky=W)
-    Radiobutton(rightFrame, text="Start", variable=radio_button_value, value=2).grid(row=row_val+3, column=1, sticky=W)
-    Radiobutton(rightFrame, text="Goal", variable=radio_button_value, value=3).grid(row=row_val+4, column=1, sticky=W)
-    horizontal_line(14)
-
-
 # Creates and Displays the buttons on the right side of the screen
 def create_left_side_elements():
     row_val = 4
@@ -180,7 +172,14 @@ def create_left_side_elements():
     create_radio_buttons(row_val+4)
 
 
-def create_
+# Creates the radio button for start/goal
+def create_radio_buttons(row_val):
+    separator(row_val)
+    horizontal_line(row_val+1)
+    Label(rightFrame, text="Cell to add/remove?").grid(row=row_val+2, column=1, sticky=W)
+    Radiobutton(rightFrame, text="Start", variable=radio_button_value, value=2).grid(row=row_val+3, column=1, sticky=W)
+    Radiobutton(rightFrame, text="Goal", variable=radio_button_value, value=3).grid(row=row_val+4, column=1, sticky=W)
+    horizontal_line(row_val+5)
 
 
 initialize_grid_matrix()
@@ -193,5 +192,20 @@ grid.bind('<Button-1>', add_start_goal_cell)
 
 root.mainloop()
 
+
+
+
+# # Creates the grid legend
+# def create_grid_legend(row_val):
+#     Label(rightFrame, text="Cell Types").grid(row=row_val, column=1, sticky=W)
+#     separator(row_val+1)
+#     Label(rightFrame, text="Clear").grid(row=row_val+2, column=1, sticky=W)
+#     Entry(rightFrame, state='disabled', disabledbackground=Cell.Color.CLEAR, width=2, bd=1).grid(row=row_val+3, column=1, sticky=W)
+#     Label(rightFrame, text="Obstacle").grid(row=row_val+4, column=1, sticky=W)
+#     Entry(rightFrame, state='disabled', disabledbackground=Cell.Color.OBSTACLE, width=2, bd=1).grid(row=row_val+5, column=1, sticky=W)
+#     Label(rightFrame, text="Start").grid(row=row_val+6, column=1, sticky=W)
+#     Entry(rightFrame, state='disabled', disabledbackground=Cell.Color.START, width=2, bd=1).grid(row=row_val+7, column=1, sticky=W)
+#     Label(rightFrame, text="Goal").grid(row=row_val+8, column=1, sticky=W)
+#     Entry(rightFrame, state='disabled', disabledbackground=Cell.Color.GOAL, width=2, bd=1).grid(row=row_val+9, column=1, sticky=W)
 
 
