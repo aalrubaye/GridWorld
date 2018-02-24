@@ -1,7 +1,11 @@
+___author = "Abdul Rubaye"
+
 from Tkinter import *
 from tkFileDialog import askopenfilename
 import tkMessageBox
 import Cell
+import Astar
+
 
 root = Tk()
 root.title("GridWorld HomeWork")
@@ -20,6 +24,10 @@ radio_button_value.set(1)
 
 is_start_created = False
 is_goal_created = False
+
+start = ()
+goal = ()
+
 
 Label(rightFrame, text="    ", fg='white').grid(row=0, column=2, sticky=W)
 Label(rightFrame, text="    ", fg='white').grid(row=0, column=0, sticky=E)
@@ -114,7 +122,7 @@ def do_nothing():
 
 # Adds the start cell or goal cell via click event
 def add_start_goal_cell(coordination):
-    global is_start_created, is_goal_created
+    global is_start_created, is_goal_created, start, goal
     (i, j) = (coordination.x/cellWidth, coordination.y/cellWidth)
     if (i < 10) & (j < 10):
         if gridMatrix[j][i] == Cell.Type.CLEAR:
@@ -122,17 +130,19 @@ def add_start_goal_cell(coordination):
                 grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
                                       fill=Cell.Color.START, width=1)
                 gridMatrix[j][i] = Cell.Type.START
+                start = (j,i)
                 is_start_created = True
             elif (radio_button_value.get() == 3) & (is_goal_created is False):
                 grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
                                       fill=Cell.Color.GOAL, width=1)
                 gridMatrix[j][i] = Cell.Type.GOAL
+                goal = (j,i)
                 is_goal_created = True
 
 
 # Resets the start cell or goal cell via click event
 def reset_start_goal_cell(coordination):
-    global is_start_created, is_goal_created
+    global is_start_created, is_goal_created, start, goal
     (i, j) = (coordination.x/cellWidth, coordination.y/cellWidth)
     if (i < 10) & (j < 10):
         if gridMatrix[j][i] == Cell.Type.START:
@@ -140,13 +150,23 @@ def reset_start_goal_cell(coordination):
                 grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
                                       fill=Cell.Color.CLEAR, width=1)
                 gridMatrix[j][i] = Cell.Type.CLEAR
+                start = ()
                 is_start_created = False
         elif gridMatrix[j][i] == Cell.Type.GOAL:
             if radio_button_value.get() == 3:
                 grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
                                       fill=Cell.Color.CLEAR, width=1)
                 gridMatrix[j][i] = Cell.Type.CLEAR
+                goal = ()
                 is_goal_created = False
+
+
+def a_star():
+    if (start != ()) and (goal != ()):
+        astar = Astar.Algorithm(gridMatrix, start, goal)
+        astar.search()
+    else:
+        tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
 
 
 def separator(row_val):
@@ -167,7 +187,7 @@ def create_left_side_elements():
     row_val = 4
     create_button("Upload Map", row_val, open_file)
     separator(row_val+1)
-    create_button("A* Path finder", row_val+2, do_nothing)
+    create_button("A* Path finder", row_val+2, a_star)
     create_button("Q Learning", row_val+3, do_nothing)
     create_radio_buttons(row_val+4)
 
