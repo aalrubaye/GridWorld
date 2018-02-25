@@ -18,21 +18,28 @@ class Algorithm:
         self.goal = gl
         self.route_nodes = [[0 for row in range(10)] for col in range(10)]
 
-    def find_neighbors(self, node):
-        neighbors_list = []
-        (x,y) = node
 
+    def direct_neighbors(self, node):
+        (x,y) = node
         top = (x-1, y) if (x-1) > -1 else None
         bottom = (x+1, y) if (x+1) < 10 else None
         left = (x, y-1) if (y-1) > -1 else None
         right = (x, y+1) if (y+1) < 10 else None
+
+        return [top,bottom,left,right]
+
+
+    def find_neighbors(self, node):
+        neighbors_list = []
+        (x,y) = node
+
+        direct_neighbors = self.direct_neighbors(node)
 
         top_right = (x-1,y+1) if ((x-1) > -1) and ((y+1) < 10) else None
         bottom_right = (x+1, y+1) if ((x+1) < 10) and ((y+1) < 10) else None
         top_left = (x-1,y-1) if ((x-1) > -1) and ((y-1) > -1) else None
         bottom_left = (x+1, y-1) if ((x+1) < 10) and ((y-1) > -1) else None
 
-        direct_neighbors = [top,bottom,left,right]
         indirect_neighbors = [top_left, top_right, bottom_left, bottom_right]
 
         # adding those direct neighbors of node that are not obstacles and not in OL
@@ -44,7 +51,7 @@ class Algorithm:
         k = 0
         for i in range(2):
             for j in range(2,4):
-                if self.node_status(direct_neighbors[i]) or self.node_status(direct_neighbors[j]):
+                if self.is_clear(direct_neighbors[i]) or self.is_clear(direct_neighbors[j]):
                     if self.is_new_valid_neighbor(indirect_neighbors[k]):
                         neighbors_list.append(indirect_neighbors[k])
                 k +=1
@@ -53,14 +60,14 @@ class Algorithm:
 
     # Returns true if the node is not in OL and not obstacle
     def is_new_valid_neighbor(self, node):
-        not_obstacle = self.node_status(node)
-        if not_obstacle and node not in self.open_list:
+        clear = self.is_clear(node)
+        if clear and node not in self.open_list:
             return True
         else:
             return False
 
     #todo switcher
-    def node_status(self, node):
+    def is_clear(self, node):
         if node is None:
             return False
         (x,y) = node
@@ -90,7 +97,8 @@ class Algorithm:
         if len(current) == 0:
             return None
         if current == self.goal:
-            return (self.route_nodes)
+            path = self.find_route()
+            return (self.route_nodes, path)
         else:
             # Find the neighbors of the current node
             neighbors = self.find_neighbors(current)
@@ -98,6 +106,37 @@ class Algorithm:
             self.add_to_open_list(neighbors, current)
             return self.search()
 
+
+    def find_route(self):
+
+        current = self.goal
+
+        route = []
+        neighbors = self.direct_neighbors(current)
+
+        while self.start not in neighbors:
+            sortable = []
+            for i in range(4):
+                if self.is_clear(neighbors[i]):
+                    (x,y) = neighbors[i]
+                    if self.route_nodes[x][y] != 0:
+                        sortable.append(neighbors[i])
+
+            min_cell = sortable[0]
+            (x_min,y_min) = sortable[0]
+
+            print (x_min, y_min)
+            for i in range (1, len(sortable)):
+                (x,y) = sortable[i]
+                one = self.route_nodes[x][y].distance
+                two = self.route_nodes[x_min][y_min].distance
+                if one < two :
+                    min_cell = sortable[i]
+                    (x_min,y_min) = sortable[i]
+            route.append(min_cell)
+            neighbors = self.direct_neighbors(min_cell)
+
+        return route
 
     # Calculates h(n)
     def heuristic(self, current):

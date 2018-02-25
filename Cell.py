@@ -14,7 +14,7 @@ class Color(Enum):
     OBSTACLE = "black"
     START = "cyan2"
     GOAL = "sandy brown"
-    VISITED = "antique white"
+    VISITED = "khaki1"
 
 
 class Size(Enum):

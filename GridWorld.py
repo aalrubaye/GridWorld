@@ -59,7 +59,6 @@ def set_new_grid():
     is_goal_created = False
 
 
-
 # Returns a cell color based on the value from the map matrix
 def cell_color(value):
     switcher = {
@@ -84,11 +83,9 @@ def insert_text_a_star(x, y, routeNode):
     cost = "d="+ str(routeNode.distance)
     fscore = "f="+str(round(routeNode.f_score,1))
     heuristic = "h="+str(round(routeNode.heuristic,1))
-    # grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text=parent, fill='black')
     grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text=fscore, fill='black')
     grid.create_text(((x+0.5)*cellWidth, (y+0.5)*cellWidth), text=cost, fill='black')
     grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text=heuristic, fill='black')
-
 
 
 # Adds the exploration notes for each cell
@@ -182,16 +179,21 @@ def a_star():
     if (start != ()) and (goal != ()):
         astar = Astar.Algorithm(gridMatrix, start, goal)
         (x,y) = goal
-        mm = astar.search()
-        if mm :
+        (x_start, y_start) = start
+        (evaluated_nodes, path) = astar.search()
+
+        if evaluated_nodes:
             for i in range (10):
                 for j in range (10):
-                    if mm[i][j] != 0:
+                    if evaluated_nodes[i][j] != 0:
                         if (i,j) == (x,y):
                             grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.GOAL, width=1)
+                        elif (i,j) in path:
+                            grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill='green', width=1)
                         else:
                             grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.VISITED, width=1)
-                        insert_text_a_star(j,i,mm[i][j])
+                        insert_text_a_star(j,i,evaluated_nodes[i][j])
+            grid.create_text(((y_start+0.5)*cellWidth, (x_start+0.5)*cellWidth), text='Start', fill='black')
         else:
             tkMessageBox.showwarning('No Route Found', 'There is no possible route to the goal! You still can re select either one of the start or goal cell.')
     else:
@@ -231,6 +233,7 @@ def create_radio_buttons(row_val):
     Radiobutton(rightFrame, text="Start", variable=radio_button_value, value=2).grid(row=row_val+3, column=1, sticky=W)
     Radiobutton(rightFrame, text="Goal", variable=radio_button_value, value=3).grid(row=row_val+4, column=1, sticky=W)
     horizontal_line(row_val+5)
+
 
 set_new_grid()
 create_left_side_elements()
