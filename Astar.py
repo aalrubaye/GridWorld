@@ -87,6 +87,8 @@ class Algorithm:
     # The main function of the short path search
     def search(self):
         current = self.fetch_from_open_list()
+        if len(current) == 0:
+            return None
         if current == self.goal:
             return (self.route_nodes)
         else:

@@ -183,15 +183,17 @@ def a_star():
         astar = Astar.Algorithm(gridMatrix, start, goal)
         (x,y) = goal
         mm = astar.search()
-        for i in range (10):
-            for j in range (10):
-                if mm[i][j] != 0:
-                    if (i,j) == (x,y):
-                        grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.GOAL, width=1)
-                    else:
-                        grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.VISITED, width=1)
-                    insert_text_a_star(j,i,mm[i][j])
-        mm = []
+        if mm :
+            for i in range (10):
+                for j in range (10):
+                    if mm[i][j] != 0:
+                        if (i,j) == (x,y):
+                            grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.GOAL, width=1)
+                        else:
+                            grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.VISITED, width=1)
+                        insert_text_a_star(j,i,mm[i][j])
+        else:
+            tkMessageBox.showwarning('No Route Found', 'There is no possible route to the goal! You still can re select either one of the start or goal cell.')
     else:
         tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
 
