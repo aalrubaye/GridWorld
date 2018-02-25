@@ -8,7 +8,7 @@ class Algorithm:
     goal = ()
     open_list=[]
     close_list=[]
-    route_nodes = [[0 for row in range(10)] for col in range(10)]
+    route_nodes = []
 
     def __init__(self, map_file, st, gl):
         self.gridMatrix = map_file
@@ -17,8 +17,6 @@ class Algorithm:
         self.start = st
         self.goal = gl
         self.route_nodes = [[0 for row in range(10)] for col in range(10)]
-
-        print (self.open_list)
 
     def find_neighbors(self, node):
         neighbors_list = []
