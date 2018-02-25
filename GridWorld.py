@@ -5,7 +5,9 @@ from tkFileDialog import askopenfilename
 import tkMessageBox
 import Cell
 import Astar
+import Qlearning
 
+ql_button = None
 
 root = Tk()
 root.title("GridWorld HomeWork")
@@ -129,11 +131,6 @@ def convert_file_to_matrix(map_file):
             index_j += 1
         index_i += 1
 
-
-def do_nothing():
-    print("doNothing")
-
-
 # Adds the start cell or goal cell via click event
 def add_start_goal_cell(coordination):
     global is_start_created, is_goal_created, start, goal
@@ -200,6 +197,11 @@ def a_star():
         tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
 
 
+def q_learning():
+    qlearning = Qlearning.Algorithm(gridMatrix)
+    qlearning.learn()
+
+
 def separator(row_val):
     Label(rightFrame, text=" "*33).grid(row=row_val, column=1)
 
@@ -210,16 +212,16 @@ def horizontal_line(row_val):
 
 # Creates the buttons
 def create_button(text, row_val, command):
-    Button(rightFrame, text=text, width=20, command=command).grid(row=row_val, column=1, sticky=W)
-
+    return Button(rightFrame, text=text, width=20, command=command).grid(row=row_val, column=1, sticky=W)
 
 # Creates and Displays the buttons on the right side of the screen
 def create_left_side_elements():
+    global ql_button
     row_val = 4
     create_button("Upload Map", row_val, open_file)
     separator(row_val+1)
     create_button("A* Path finder", row_val+2, a_star)
-    create_button("Q Learning", row_val+3, do_nothing)
+    ql_button = create_button("Q Learning", row_val+3, q_learning)
     separator(row_val+4)
     create_button("Reset", row_val+5, set_new_grid)
     create_radio_buttons(row_val+6)
