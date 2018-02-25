@@ -6,6 +6,7 @@ class Type(Enum):
     OBSTACLE = 1
     START = 2
     GOAL = 3
+    VISITED = 4
 
 
 class Color(Enum):
@@ -13,6 +14,7 @@ class Color(Enum):
     OBSTACLE = "black"
     START = "cyan2"
     GOAL = "sandy brown"
+    VISITED = "antique white"
 
 
 class Size(Enum):

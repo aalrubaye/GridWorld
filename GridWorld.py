@@ -43,9 +43,21 @@ gridMatrix = [[0 for row in range(x)] for col in range(y)]
 
 # The world grid matrix initializer
 def initialize_grid_matrix():
+    global  gridMatrix
     for i in range(x):
         for j in range(y):
             gridMatrix[i][j] = 0
+
+
+def set_new_grid():
+    global is_start_created, is_goal_created, goal, start
+    initialize_grid_matrix()
+    create_grid()
+    goal = ()
+    start = ()
+    is_start_created = False
+    is_goal_created = False
+
 
 
 # Returns a cell color based on the value from the map matrix
@@ -68,10 +80,15 @@ def insert_text_ql(x, y):
 
 
 # Adds the text for A_star path planning
-def insert_text_a_star(x, y):
-    grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text="text-top", fill='black')
-    grid.create_text(((x+0.5)*cellWidth, (y+0.5)*cellWidth), text="text-mid", fill='black')
-    grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text="text-below", fill='black')
+def insert_text_a_star(x, y, routeNode):
+    cost = "d="+ str(routeNode.distance)
+    fscore = "f="+str(round(routeNode.f_score,1))
+    heuristic = "h="+str(round(routeNode.heuristic,1))
+    # grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text=parent, fill='black')
+    grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text=fscore, fill='black')
+    grid.create_text(((x+0.5)*cellWidth, (y+0.5)*cellWidth), text=cost, fill='black')
+    grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text=heuristic, fill='black')
+
 
 
 # Adds the exploration notes for each cell
@@ -164,7 +181,17 @@ def reset_start_goal_cell(coordination):
 def a_star():
     if (start != ()) and (goal != ()):
         astar = Astar.Algorithm(gridMatrix, start, goal)
-        astar.search()
+        (x,y) = goal
+        mm = astar.search()
+        for i in range (10):
+            for j in range (10):
+                if mm[i][j] != 0:
+                    if (i,j) == (x,y):
+                        grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.GOAL, width=1)
+                    else:
+                        grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.VISITED, width=1)
+                    insert_text_a_star(j,i,mm[i][j])
+        mm = []
     else:
         tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
 
@@ -189,7 +216,9 @@ def create_left_side_elements():
     separator(row_val+1)
     create_button("A* Path finder", row_val+2, a_star)
     create_button("Q Learning", row_val+3, do_nothing)
-    create_radio_buttons(row_val+4)
+    separator(row_val+4)
+    create_button("Reset", row_val+5, set_new_grid)
+    create_radio_buttons(row_val+6)
 
 
 # Creates the radio button for start/goal
@@ -201,13 +230,11 @@ def create_radio_buttons(row_val):
     Radiobutton(rightFrame, text="Goal", variable=radio_button_value, value=3).grid(row=row_val+4, column=1, sticky=W)
     horizontal_line(row_val+5)
 
-initialize_grid_matrix()
-create_grid()
+set_new_grid()
 create_left_side_elements()
 
 grid.bind('<Button-2>', reset_start_goal_cell)
 grid.bind('<Button-1>', add_start_goal_cell)
-
 
 root.mainloop()
 
