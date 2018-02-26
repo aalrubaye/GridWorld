@@ -3,7 +3,8 @@ import math
 import RouteNode
 
 class Algorithm:
-    gridMatrix = [[0 for row in range(10)] for col in range(10)]
+    (grid_x, grid_y) = (10, 10)
+    gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     start = ()
     goal = ()
     open_list=[]
@@ -16,15 +17,15 @@ class Algorithm:
         self.close_list = []
         self.start = st
         self.goal = gl
-        self.route_nodes = [[0 for row in range(10)] for col in range(10)]
+        self.route_nodes = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
 
 
     def direct_neighbors(self, node):
         (x,y) = node
         top = (x-1, y) if (x-1) > -1 else None
-        bottom = (x+1, y) if (x+1) < 10 else None
+        bottom = (x+1, y) if (x+1) < self.grid_x else None
         left = (x, y-1) if (y-1) > -1 else None
-        right = (x, y+1) if (y+1) < 10 else None
+        right = (x, y+1) if (y+1) < self.grid_y else None
 
         return [top,bottom,left,right]
 
@@ -35,10 +36,10 @@ class Algorithm:
 
         direct_neighbors = self.direct_neighbors(node)
 
-        top_right = (x-1,y+1) if ((x-1) > -1) and ((y+1) < 10) else None
-        bottom_right = (x+1, y+1) if ((x+1) < 10) and ((y+1) < 10) else None
+        top_right = (x-1,y+1) if ((x-1) > -1) and ((y+1) < self.grid_y) else None
+        bottom_right = (x+1, y+1) if ((x+1) < self.grid_x) and ((y+1) < self.grid_y) else None
         top_left = (x-1,y-1) if ((x-1) > -1) and ((y-1) > -1) else None
-        bottom_left = (x+1, y-1) if ((x+1) < 10) and ((y-1) > -1) else None
+        bottom_left = (x+1, y-1) if ((x+1) < self.grid_x) and ((y-1) > -1) else None
 
         indirect_neighbors = [top_left, top_right, bottom_left, bottom_right]
 
@@ -125,7 +126,6 @@ class Algorithm:
             min_cell = sortable[0]
             (x_min,y_min) = sortable[0]
 
-            print (x_min, y_min)
             for i in range (1, len(sortable)):
                 (x,y) = sortable[i]
                 one = self.route_nodes[x][y].distance
@@ -193,8 +193,3 @@ class Algorithm:
             self.open_list.remove(node)
             return node
 
-
-    def printoc(self):
-        print ("OL = ", self.open_list)
-        print ("CL = ", self.close_list)
-        print ("--------------------")

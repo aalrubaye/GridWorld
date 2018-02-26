@@ -1,3 +1,5 @@
+import time
+
 ___author = "Abdul Rubaye"
 
 from Tkinter import *
@@ -6,6 +8,7 @@ import tkMessageBox
 import Cell
 import Astar
 import Qlearning
+import threading
 
 ql_button = None
 
@@ -38,16 +41,16 @@ grid = Canvas(leftFrame, width=800, heigh=800)
 
 
 # grid size
-(x, y) = (10, 10)
+(grid_x, grid_y) = (10, 10)
 
-gridMatrix = [[0 for row in range(x)] for col in range(y)]
-
+gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
+# qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
 
 # The world grid matrix initializer
 def initialize_grid_matrix():
     global  gridMatrix
-    for i in range(x):
-        for j in range(y):
+    for i in range(grid_x):
+        for j in range(grid_y):
             gridMatrix[i][j] = 0
 
 
@@ -73,11 +76,15 @@ def cell_color(value):
 
 
 # Adds the text for QL path planning
-def insert_text_ql(x, y):
-    grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text="2", fill='black')
-    grid.create_text(((x+0.25)*cellWidth, (y+0.5)*cellWidth), text="2", fill='black')
-    grid.create_text(((x+0.75)*cellWidth, (y+0.5)*cellWidth), text="2", fill='black')
-    grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text="2", fill='black')
+def insert_text_ql(x, y, q_matrix):
+    top = round(q_matrix[0],1)
+    bottom = round(q_matrix[1],1)
+    right = round(q_matrix[2],1)
+    left = round(q_matrix[3],1)
+    grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text=top, fill='black')
+    grid.create_text(((x+0.25)*cellWidth, (y+0.5)*cellWidth), text=bottom, fill='brown')
+    grid.create_text(((x+0.75)*cellWidth, (y+0.5)*cellWidth), text=right, fill='red')
+    grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text=left, fill='blue')
 
 
 # Adds the text for A_star path planning
@@ -99,8 +106,8 @@ def add_exploration_texts():
 
 # Creates and renders the world grid
 def create_grid():
-    for i in range(x):
-        for j in range(y):
+    for i in range(grid_x):
+        for j in range(grid_y):
             color = cell_color(gridMatrix[j][i])
             grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth, fill=color, width=1)
     grid.pack(side=LEFT)
@@ -135,7 +142,7 @@ def convert_file_to_matrix(map_file):
 def add_start_goal_cell(coordination):
     global is_start_created, is_goal_created, start, goal
     (i, j) = (coordination.x/cellWidth, coordination.y/cellWidth)
-    if (i < 10) & (j < 10):
+    if (i < grid_x) & (j < grid_y):
         if gridMatrix[j][i] == Cell.Type.CLEAR:
             if (radio_button_value.get() == 2) & (is_start_created is False):
                 grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
@@ -155,7 +162,7 @@ def add_start_goal_cell(coordination):
 def reset_start_goal_cell(coordination):
     global is_start_created, is_goal_created, start, goal
     (i, j) = (coordination.x/cellWidth, coordination.y/cellWidth)
-    if (i < 10) & (j < 10):
+    if (i < grid_x) & (j < grid_y):
         if gridMatrix[j][i] == Cell.Type.START:
             if radio_button_value.get() == 2:
                 grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
@@ -180,8 +187,8 @@ def a_star():
         (evaluated_nodes, path) = astar.search()
 
         if evaluated_nodes:
-            for i in range (10):
-                for j in range (10):
+            for i in range (grid_x):
+                for j in range (grid_y):
                     if evaluated_nodes[i][j] != 0:
                         if (i,j) == (x,y):
                             grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.GOAL, width=1)
@@ -198,8 +205,19 @@ def a_star():
 
 
 def q_learning():
-    qlearning = Qlearning.Algorithm(gridMatrix)
-    qlearning.learn()
+    global qlearner
+    qlearner = Qlearning.Algorithm(gridMatrix, goal)
+    rep_learning()
+
+def rep_learning():
+    global qlearner
+    create_grid()
+    qMatrix = qlearner.learn()
+    for i in range (grid_x):
+        for j in range (grid_y):
+            if gridMatrix[i][j] != 1:
+                insert_text_ql(j,i,qMatrix[i][j])
+
 
 
 def separator(row_val):
@@ -225,6 +243,7 @@ def create_left_side_elements():
     separator(row_val+4)
     create_button("Reset", row_val+5, set_new_grid)
     create_radio_buttons(row_val+6)
+    create_button("Repeat", row_val+7, rep_learning)
 
 
 # Creates the radio button for start/goal
