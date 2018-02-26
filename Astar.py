@@ -3,7 +3,7 @@ import math
 import RouteNode
 
 class Algorithm:
-    (grid_x, grid_y) = (5, 5)
+    (grid_x, grid_y) = (10, 10)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     start = ()
     goal = ()

@@ -3,17 +3,16 @@ from random import *
 import time
 
 class Algorithm:
-    (grid_x, grid_y) = (5, 5)
+    (grid_x, grid_y) = (10, 10)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     actions = ['up','down','right','left']
     goal = ()
     gamma = 0.8
 
-    def __init__(self, map_file,g):
+    def __init__(self, map_file):
         self.gridMatrix = map_file
         self.qMatrix = self.initialize_q_matrix()
-        self.goal = g
 
 
     def initialize_q_matrix(self):
@@ -27,24 +26,26 @@ class Algorithm:
                         q[i][j] = None
         return q
 
-    def learn(self):
-        current_state = self.initial_state()
+    def learn(self, goal):
+        self.goal = goal
 
+        for i in range(10):
+            current_state = self.initial_state()
 
-        while current_state != self.goal:
-            actions = self.find_possible_actions(current_state)
+            while current_state != self.goal:
+                actions = self.find_possible_actions(current_state)
 
-            # deterministic mode to select an action with probability 1
-            rand_action = randint(0,3)
-            next_state = actions[rand_action]
-            (x,y) = current_state
-            self.qMatrix[x][y][rand_action] = self.calculate_q(current_state, next_state)
-            # print '{}->{}'.format(current_state,next_state)
-            if next_state is not None:
-                current_state = next_state
+                # deterministic mode to select an action with probability 1
+                rand_action = randint(0,3)
+                next_state = actions[rand_action]
+                (x,y) = current_state
+                self.qMatrix[x][y][rand_action] = self.calculate_q(current_state, next_state)
+                # print '{}->{}'.format(current_state,next_state)
+                if next_state is not None:
+                    current_state = next_state
 
-        self.print_q()
-        # print ('GOAL!')
+            # self.print_q()
+            print (i)
         return self.qMatrix
 
     def calculate_q(self,current_state, next_state):

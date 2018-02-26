@@ -39,13 +39,14 @@ Label(rightFrame, text="    ", fg='white').grid(row=0, column=0, sticky=E)
 
 grid = Canvas(leftFrame, width=800, heigh=800)
 
-
 # grid size
-(grid_x, grid_y) = (5, 5)
+(grid_x, grid_y) = (10, 10)
 
 gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
-# qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
+qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
 
+qlearner = Qlearning.Algorithm(gridMatrix)
+qMatrix_calculated = False
 # The world grid matrix initializer
 def initialize_grid_matrix():
     global  gridMatrix
@@ -73,20 +74,6 @@ def cell_color(value):
         3: Cell.Color.GOAL
     }
     return switcher.get(value, Cell.Color.CLEAR)
-
-
-def poly_color(val):
-    if val <= 0:
-        return "gray72"
-    if -1 < val <= 25:
-        return "blanched almond"
-    if 25 < val <=50:
-        return "bisque"
-    if 50 < val <=75:
-        return "navajo white"
-    else:
-        return "sandy brown"
-
 
 def ql_color(top,bottom,right,left):
     sum = top+bottom+right+left
@@ -121,15 +108,6 @@ def insert_text_ql(x, y, q_matrix):
 
     qlc = ql_color(top,bottom,right,left)
     grid.create_rectangle(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth, fill=qlc, width=1)
-    # top_color = poly_color(top)
-    # bottom_color = poly_color(bottom)
-    # right_color = poly_color(right)
-    # left_color = poly_color(left)
-
-    # grid.create_polygon([x*cellWidth,y*cellWidth,x*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=left_color, width=1, outline='gray')
-    # grid.create_polygon([x*cellWidth,y*cellWidth,(x+1)*cellWidth,y*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=top_color, width=1, outline='gray')
-    # grid.create_polygon([x*cellWidth,(y+1)*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,(y+1)*cellWidth], fill=bottom_color, width=1, outline='gray')
-    # grid.create_polygon([(x+1)*cellWidth,y*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,(x+1)*cellWidth,y*cellWidth], fill=right_color, width=1, outline='gray')
 
     grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text=top, fill='black')
     grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text=bottom, fill='black')
@@ -154,8 +132,7 @@ def create_grid():
             color = cell_color(gridMatrix[j][i])
             grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth, fill=color, width=1)
     grid.pack(side=LEFT)
-    # add_exploration_texts()
-    # create_polygan()
+
 
 # opens a map matrix from a file and renders it to the grid
 def open_file():
@@ -190,12 +167,14 @@ def add_start_goal_cell(coordination):
             if (radio_button_value.get() == 2) & (is_start_created is False):
                 grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
                                       fill=Cell.Color.START, width=1)
+                grid.create_text(((i+0.5)*cellWidth, (j+0.5)*cellWidth), text="Start", fill='black')
                 gridMatrix[j][i] = Cell.Type.START
                 start = (j,i)
                 is_start_created = True
             elif (radio_button_value.get() == 3) & (is_goal_created is False):
                 grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth,
                                       fill=Cell.Color.GOAL, width=1)
+                grid.create_text(((i+0.5)*cellWidth, (j+0.5)*cellWidth), text="Goal", fill='black')
                 gridMatrix[j][i] = Cell.Type.GOAL
                 goal = (j,i)
                 is_goal_created = True
@@ -247,21 +226,43 @@ def a_star():
         tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
 
 
-def q_learning():
-    global qlearner
-    qlearner = Qlearning.Algorithm(gridMatrix, goal)
-    rep_learning()
+# def q_learning():
+#     global qlearner
+#     qlearner = Qlearning.Algorithm(gridMatrix, goal)
+#     rep_learning()
 
 def rep_learning():
-    global qlearner
+    global qlearner, qMatrix, qMatrix_calculated
+
     create_grid()
-    qMatrix = qlearner.learn()
+    qMatrix = qlearner.learn(goal)
+    qMatrix_calculated = True
     for i in range (grid_x):
         for j in range (grid_y):
             if gridMatrix[i][j] == Cell.Type.CLEAR:
                 insert_text_ql(j,i,qMatrix[i][j])
             if gridMatrix[i][j] == Cell.Type.GOAL:
-                grid.create_text(((i+0.5)*cellWidth, (j+0.5)*cellWidth), text="GOAL", fill='black')
+                grid.create_text(((j+0.5)*cellWidth, (i+0.5)*cellWidth), text="Goal", fill='black')
+
+
+def find_path_ql():
+    global qMatrix
+    if start == ():
+        tkMessageBox.showwarning('No Start', 'Please select the start state!')
+        return
+    if qMatrix_calculated is False:
+        tkMessageBox.showwarning('QLearning Error', 'Please run the Q Learning Algorithm')
+        return
+
+
+    current = start
+    (x,y) = current
+
+    goal_found = False
+
+    while goal_found is False:
+        max = qlearner.max_q(qMatrix[x][y])
+
 
 
 
@@ -284,11 +285,11 @@ def create_left_side_elements():
     create_button("Upload Map", row_val, open_file)
     separator(row_val+1)
     create_button("A* Path finder", row_val+2, a_star)
-    ql_button = create_button("Q Learning", row_val+3, q_learning)
+    ql_button = create_button("Q Learning", row_val+3, rep_learning)
     separator(row_val+4)
     create_button("Reset", row_val+5, set_new_grid)
     create_radio_buttons(row_val+6)
-    create_button("Repeat", row_val+7, rep_learning)
+    create_button("Find Path", row_val+7, find_path_ql)
 
 
 # Creates the radio button for start/goal
@@ -307,8 +308,8 @@ create_left_side_elements()
 grid.bind('<Button-2>', reset_start_goal_cell)
 grid.bind('<Button-1>', add_start_goal_cell)
 
-root.mainloop()
 
+root.mainloop()
 
 
 
