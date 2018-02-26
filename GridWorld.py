@@ -41,7 +41,7 @@ grid = Canvas(leftFrame, width=800, heigh=800)
 
 
 # grid size
-(grid_x, grid_y) = (10, 10)
+(grid_x, grid_y) = (5, 5)
 
 gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
 # qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
@@ -75,16 +75,66 @@ def cell_color(value):
     return switcher.get(value, Cell.Color.CLEAR)
 
 
+def poly_color(val):
+    if val <= 0:
+        return "gray72"
+    if -1 < val <= 25:
+        return "blanched almond"
+    if 25 < val <=50:
+        return "bisque"
+    if 50 < val <=75:
+        return "navajo white"
+    else:
+        return "sandy brown"
+
+
+def ql_color(top,bottom,right,left):
+    sum = top+bottom+right+left
+    if sum <= 30:
+        return "#fff8eb"
+    if 30 < sum <= 60:
+        return "#fff1de"
+    if 60 < sum <=90:
+        return "#ffe6c7"
+    if 90 < sum <=120:
+        return "#ffe6c7"
+    if 120 <sum<=150:
+        return "#ffd19a"
+    if 150<sum<=180:
+        return "#ffc887"
+    if 180<sum<=210:
+        return "#ffbe72"
+    if 210<sum<=240:
+        return "#ffb660"
+    if 240<sum<=270:
+        return "#ffae52"
+    else:
+        return "#ffa53d"
+
 # Adds the text for QL path planning
 def insert_text_ql(x, y, q_matrix):
+
     top = round(q_matrix[0],1)
     bottom = round(q_matrix[1],1)
     right = round(q_matrix[2],1)
     left = round(q_matrix[3],1)
+
+    qlc = ql_color(top,bottom,right,left)
+    grid.create_rectangle(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth, fill=qlc, width=1)
+    # top_color = poly_color(top)
+    # bottom_color = poly_color(bottom)
+    # right_color = poly_color(right)
+    # left_color = poly_color(left)
+
+    # grid.create_polygon([x*cellWidth,y*cellWidth,x*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=left_color, width=1, outline='gray')
+    # grid.create_polygon([x*cellWidth,y*cellWidth,(x+1)*cellWidth,y*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=top_color, width=1, outline='gray')
+    # grid.create_polygon([x*cellWidth,(y+1)*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,(y+1)*cellWidth], fill=bottom_color, width=1, outline='gray')
+    # grid.create_polygon([(x+1)*cellWidth,y*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,(x+1)*cellWidth,y*cellWidth], fill=right_color, width=1, outline='gray')
+
     grid.create_text(((x+0.5)*cellWidth, (y+0.25)*cellWidth), text=top, fill='black')
-    grid.create_text(((x+0.25)*cellWidth, (y+0.5)*cellWidth), text=bottom, fill='brown')
-    grid.create_text(((x+0.75)*cellWidth, (y+0.5)*cellWidth), text=right, fill='red')
-    grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text=left, fill='blue')
+    grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text=bottom, fill='black')
+    grid.create_text(((x+0.75)*cellWidth, (y+0.5)*cellWidth), text=right, fill='black')
+    grid.create_text(((x+0.25)*cellWidth, (y+0.5)*cellWidth), text=left, fill='black')
 
 
 # Adds the text for A_star path planning
@@ -97,13 +147,6 @@ def insert_text_a_star(x, y, routeNode):
     grid.create_text(((x+0.5)*cellWidth, (y+0.75)*cellWidth), text=heuristic, fill='black')
 
 
-# Adds the exploration notes for each cell
-def add_exploration_texts():
-    insert_text_a_star(2,2)
-    insert_text_ql(1,1)
-    grid.pack(side=LEFT)
-
-
 # Creates and renders the world grid
 def create_grid():
     for i in range(grid_x):
@@ -112,7 +155,7 @@ def create_grid():
             grid.create_rectangle(i*cellWidth, j*cellWidth, (i+1)*cellWidth, (j+1)*cellWidth, fill=color, width=1)
     grid.pack(side=LEFT)
     # add_exploration_texts()
-
+    # create_polygan()
 
 # opens a map matrix from a file and renders it to the grid
 def open_file():
@@ -215,8 +258,10 @@ def rep_learning():
     qMatrix = qlearner.learn()
     for i in range (grid_x):
         for j in range (grid_y):
-            if gridMatrix[i][j] != 1:
+            if gridMatrix[i][j] == Cell.Type.CLEAR:
                 insert_text_ql(j,i,qMatrix[i][j])
+            if gridMatrix[i][j] == Cell.Type.GOAL:
+                grid.create_text(((i+0.5)*cellWidth, (j+0.5)*cellWidth), text="GOAL", fill='black')
 
 
 

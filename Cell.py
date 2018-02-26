@@ -13,7 +13,7 @@ class Color(Enum):
     CLEAR = "floral white"
     OBSTACLE = "black"
     START = "cyan2"
-    GOAL = "sandy brown"
+    GOAL = "orange"
     VISITED = "khaki1"
 
 

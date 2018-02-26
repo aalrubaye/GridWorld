@@ -3,12 +3,12 @@ from random import *
 import time
 
 class Algorithm:
-    (grid_x, grid_y) = (10, 10)
+    (grid_x, grid_y) = (5, 5)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     actions = ['up','down','right','left']
     goal = ()
-    gamma = 0.1
+    gamma = 0.8
 
     def __init__(self, map_file,g):
         self.gridMatrix = map_file
@@ -39,12 +39,12 @@ class Algorithm:
             next_state = actions[rand_action]
             (x,y) = current_state
             self.qMatrix[x][y][rand_action] = self.calculate_q(current_state, next_state)
-            print '{}->{}'.format(current_state,next_state)
+            # print '{}->{}'.format(current_state,next_state)
             if next_state is not None:
                 current_state = next_state
 
-
-        print ('GOAL!')
+        self.print_q()
+        # print ('GOAL!')
         return self.qMatrix
 
     def calculate_q(self,current_state, next_state):
@@ -110,9 +110,9 @@ class Algorithm:
 
     def reward(self,state):
         if state == self.goal:
-            return 1
+            return 100
         else:
-            return -0.5
+            return -1
 
     def direct_neighbors(self, state):
         (x,y) = state
