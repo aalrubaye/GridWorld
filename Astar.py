@@ -1,9 +1,10 @@
 ___author = "Abdul Rubaye"
 import math
 import RouteNode
+import Cell
 
 class Algorithm:
-    (grid_x, grid_y) = (10, 10)
+    (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     start = ()
     goal = ()

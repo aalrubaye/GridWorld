@@ -16,6 +16,8 @@ class Color(Enum):
     GOAL = "orange"
     VISITED = "khaki1"
 
+class World(Enum):
+    CELL_WIDTH = 80
+    X=7
+    Y=7
 
-class Size(Enum):
-    Width = 80

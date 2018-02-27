@@ -1,9 +1,10 @@
 ___author = "Abdul Rubaye"
 from random import *
 import time
+import Cell
 
 class Algorithm:
-    (grid_x, grid_y) = (10, 10)
+    (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     actions = ['up','down','right','left']
@@ -13,6 +14,7 @@ class Algorithm:
     def __init__(self, map_file):
         self.gridMatrix = map_file
         self.qMatrix = self.initialize_q_matrix()
+        print self.grid_x, self.grid_y
 
 
     def initialize_q_matrix(self):
@@ -29,42 +31,51 @@ class Algorithm:
     def learn(self, goal):
         self.goal = goal
 
+        # i number of episodes per execution
         for i in range(10):
             current_state = self.initial_state()
 
             while current_state != self.goal:
                 actions = self.find_possible_actions(current_state)
 
-                # deterministic mode to select an action with probability 1
+                # deterministic mode: to select an action with probability 1
                 rand_action = randint(0,3)
                 next_state = actions[rand_action]
                 (x,y) = current_state
-                self.qMatrix[x][y][rand_action] = self.calculate_q(current_state, next_state)
+                self.qMatrix[x][y][rand_action] = self.calculate_q(next_state)
                 # print '{}->{}'.format(current_state,next_state)
                 if next_state is not None:
                     current_state = next_state
 
             # self.print_q()
-            print (i)
+            # print (i)
         return self.qMatrix
 
-    def calculate_q(self,current_state, next_state):
-        q_a = self.reward(next_state)+self.gamma*self.max_q(next_state)
+    def calculate_q(self, next_state):
+        if next_state is None:
+            max = 0
+        else:
+            (x,y) = next_state
+            index = self.max_q_index(next_state)
+            max = self.qMatrix[x][y][index]
+
+        q_a = self.reward(next_state)+self.gamma*max
         return q_a
 
-
-    def max_q(self, state):
+    # Returns the max value among all the q values of a state and the index of the max value
+    # the index is [0= top, 1= bottom, 2=right, 3=left]
+    def max_q_index(self, state):
         if state is None:
             return 0
 
         max = self.q(state, 0)
+        index = 0
         for i in range (1,4):
             q = self.q(state, i)
             if q > max:
                 max = q
-
-        return max
-
+                index = i
+        return index
 
     def initial_state(self):
         rand_x = randint(0, self.grid_x-1)
@@ -135,14 +146,6 @@ class Algorithm:
             else:
                 actions.append(None)
         return actions
-
-    # def select_a_rand_action(self, actions):
-    #     rand_action = randint(0,3)
-    #
-    #     while actions[rand_action] is None:
-    #         rand_action = randint(0,3)
-    #
-    #     return rand_action
 
     #todo switcher
     def is_clear(self, state):

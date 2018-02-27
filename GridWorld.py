@@ -16,7 +16,7 @@ root = Tk()
 root.title("GridWorld HomeWork")
 root.resizable(width=FALSE, height=FALSE)
 
-cellWidth = Cell.Size.Width
+cellWidth = Cell.World.CELL_WIDTH
 
 rightFrame = Frame(root)
 rightFrame.pack(side=RIGHT, fill=Y)
@@ -40,7 +40,7 @@ Label(rightFrame, text="    ", fg='white').grid(row=0, column=0, sticky=E)
 grid = Canvas(leftFrame, width=800, heigh=800)
 
 # grid size
-(grid_x, grid_y) = (10, 10)
+(grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
 
 gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
 qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
@@ -105,6 +105,7 @@ def insert_text_ql(x, y, q_matrix):
     bottom = round(q_matrix[1],1)
     right = round(q_matrix[2],1)
     left = round(q_matrix[3],1)
+
 
     qlc = ql_color(top,bottom,right,left)
     grid.create_rectangle(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth, fill=qlc, width=1)
@@ -232,9 +233,13 @@ def a_star():
 #     rep_learning()
 
 def rep_learning():
-    global qlearner, qMatrix, qMatrix_calculated
+    global qlearner, qMatrix, qMatrix_calculated, goal
 
     create_grid()
+    if goal == ():
+        tkMessageBox.showwarning('No Goal', 'Please select the goal state!')
+        return
+    
     qMatrix = qlearner.learn(goal)
     qMatrix_calculated = True
     for i in range (grid_x):
@@ -246,25 +251,36 @@ def rep_learning():
 
 
 def find_path_ql():
-    global qMatrix
+    global qMatrix, goal
     if start == ():
         tkMessageBox.showwarning('No Start', 'Please select the start state!')
         return
     if qMatrix_calculated is False:
         tkMessageBox.showwarning('QLearning Error', 'Please run the Q Learning Algorithm')
         return
-
-
     current = start
-    (x,y) = current
+    path = []
+    while current != goal:
+        max_q_index = qlearner.max_q_index(current)
+        next_state = next_state_on_path(current, max_q_index)
+        if next_state != goal:
+            path.append(next_state)
+        current = next_state
 
-    goal_found = False
-
-    while goal_found is False:
-        max = qlearner.max_q(qMatrix[x][y])
+    for (i,j) in path:
+        grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill='green', width=1)
 
 
 
+def next_state_on_path(state, index):
+    (x,y) = state
+    switcher = {
+        0: (x-1, y),
+        1: (x+1, y),
+        2: (x, y+1),
+        3: (x, y-1)
+    }
+    return switcher.get(index, (x,y))
 
 def separator(row_val):
     Label(rightFrame, text=" "*33).grid(row=row_val, column=1)
