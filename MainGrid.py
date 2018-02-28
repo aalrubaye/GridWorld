@@ -23,6 +23,7 @@ class MainApp:
     (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
     qMatrix_calculated = False
     pause = False
+    entry = "1"
     element_order = 3
 
     def __init__(self, root):
@@ -117,7 +118,6 @@ class MainApp:
         self.grid.create_text(((x+0.75)*self.cellWidth, (y+0.5)*self.cellWidth), text=right, fill='black')
         self.grid.create_text(((x+0.25)*self.cellWidth, (y+0.5)*self.cellWidth), text=left, fill='black')
 
-
     # Adds the text for A_star path planning
     def insert_text_a_star(self, x, y, routeNode):
         cost = "d="+ str(routeNode.distance)
@@ -127,7 +127,6 @@ class MainApp:
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.5)*self.cellWidth), text=cost, fill='black')
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.75)*self.cellWidth), text=heuristic, fill='black')
 
-
     # Creates and renders the world grid
     def create_grid(self):
         for i in range(self.grid_x):
@@ -136,9 +135,9 @@ class MainApp:
                 self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth, fill=color, width=1)
         self.grid.pack(side=LEFT)
 
-
     # opens a map matrix from a file and renders it to the grid
     def open_file(self):
+        print (self.entry)
         map_file = askopenfilename(title="Select map file")
         if len(map_file) == 0:
             tkMessageBox.showwarning('No Selection', 'No map file was selected!')
@@ -147,6 +146,7 @@ class MainApp:
         self.is_start_created = False
         self.is_goal_created = False
 
+    # Returns orders of the right side elements
     def get_elements_order(self):
         self.element_order += 1
         return self.element_order
@@ -183,7 +183,6 @@ class MainApp:
                     self.goal = (j,i)
                     self.is_goal_created = True
 
-
     # Resets the start cell or goal cell via click event
     def reset_start_goal_cell(self, coordination):
         global is_start_created, is_goal_created, start, goal
@@ -204,12 +203,9 @@ class MainApp:
                     goal = ()
                     is_goal_created = False
 
-
-
+    # Renders a horizontal gray line
     def horizontal_line(self):
         ttk.Separator(self.rightFrame, orient="horizontal").grid(row=self.get_elements_order(),column=1,sticky="ew",padx=10, pady=10)
-
-
 
     # Creates the buttons
     def create_button(self, text, width, command):
@@ -217,7 +213,6 @@ class MainApp:
 
     # Creates and Displays the buttons on the right side of the screen
     def create_left_side_elements(self):
-
         self.create_button("Upload Map",  20, self.open_file)
         self.create_button("Reset Grid", 20, self.set_new_grid)
         self.horizontal_line()
@@ -226,17 +221,17 @@ class MainApp:
         Label(self.rightFrame, text="Q-Learning Path Finder").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.create_button("Start QL", 20, self.update_text)
         self.create_button("Pause", 20, self.pause_q_learning)
+        self.create_button("Find Path", 20, self.find_path_ql)
+        Label(self.rightFrame, text="Enter Speed (1 to 10)").grid(row=self.get_elements_order(), column=1, sticky=W)
+        Entry(self.rightFrame, textvariable=self.entry).grid(row=self.get_elements_order(), column=1, sticky=W)
         self.horizontal_line()
         Label(self.rightFrame, text="A* Path Finder").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.create_button("Start A*", 20, self.a_star)
 
-        # self.create_button("Find Path", 20, self.find_path_ql)
-
-
+    # Pauses the QL learning algorithm
     def pause_q_learning(self):
         self.pause = True
         self.pqb.config(text='Loop terminated')
-
 
     # Creates the radio button for start/goal
     def create_radio_buttons(self):
@@ -244,18 +239,18 @@ class MainApp:
         Radiobutton(self.rightFrame, text="Start", variable=self.radio_button_value, value=2).grid(row=self.get_elements_order(), column=1, sticky=W)
         Radiobutton(self.rightFrame, text="Goal", variable=self.radio_button_value, value=3).grid(row=self.get_elements_order(), column=1, sticky=W)
 
+    # The main function that calls the QL algorithm
     def q_learning(self, tt):
         self.create_grid()
-
-        result = 0
         if self.goal == ():
 
             tkMessageBox.showwarning('No Goal', 'Please select the goal state!')
             return
         self.qMatrix = self.qlearner.learn(self.goal)
         self.qMatrix_calculated = True
-        tt.put(result)
+        tt.put(0)
 
+    # Populate the q matrix value after each episode
     def create_gg(self):
             for i in range(self.grid_x):
                 for j in range(self.grid_y):
@@ -264,7 +259,7 @@ class MainApp:
                     if self.gridMatrix[i][j] == Cell.Type.GOAL:
                         self.grid.create_text(((j+0.5)*self.cellWidth, (i+0.5)*self.cellWidth), text="Goal", fill='black')
 
-
+    # Finds the path after the ql algorithm is done
     def find_path_ql(self):
 
         if self.start == ():
@@ -285,7 +280,7 @@ class MainApp:
         for (i,j) in path:
             self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill='green', width=1)
 
-
+    # the main function of the A* algorithm
     def a_star(self):
         if (self.start != ()) and (self.goal != ()):
             astar = Astar.Algorithm(self.gridMatrix, self.start, self.goal)
@@ -312,8 +307,7 @@ class MainApp:
         else:
             tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
 
-
-
+    # Find the states on the path for QL Algorithm
     def next_state_on_path(self, state, index):
         (x,y) = state
         switcher = {
@@ -324,7 +318,7 @@ class MainApp:
         }
         return switcher.get(index, (x,y))
 
-
+    # The main function that runs the QLearner using threading
     def update_text(self):
         '''
         Spawn a new thread for running long loops in background
@@ -336,7 +330,7 @@ class MainApp:
         self.new_thread.start()
         self.root.after(1, self.listen_for_result())
 
-
+    # Fetches the results and renderds them via threading
     def listen_for_result(self):
         '''
         Check if there is something in the queue
@@ -349,6 +343,8 @@ class MainApp:
         except queue.Empty:
             self.root.after(1000, self.listen_for_result)
 
+
+# MAIN
 if __name__ == "__main__":
     root = Tk()
     main_app = MainApp(root)
