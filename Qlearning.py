@@ -32,7 +32,7 @@ class Algorithm:
         self.goal = goal
 
         # i number of episodes per execution
-        for i in range(10):
+        for i in range(1):
             current_state = self.initial_state()
 
             while current_state != self.goal:
@@ -48,7 +48,7 @@ class Algorithm:
                     current_state = next_state
 
             # self.print_q()
-            # print (i)
+            print (time.time())
         return self.qMatrix
 
     def calculate_q(self, next_state):

@@ -239,15 +239,16 @@ def rep_learning():
     if goal == ():
         tkMessageBox.showwarning('No Goal', 'Please select the goal state!')
         return
-    
-    qMatrix = qlearner.learn(goal)
-    qMatrix_calculated = True
-    for i in range (grid_x):
-        for j in range (grid_y):
-            if gridMatrix[i][j] == Cell.Type.CLEAR:
-                insert_text_ql(j,i,qMatrix[i][j])
-            if gridMatrix[i][j] == Cell.Type.GOAL:
-                grid.create_text(((j+0.5)*cellWidth, (i+0.5)*cellWidth), text="Goal", fill='black')
+    for ii in range(100):
+        qMatrix = qlearner.learn(goal)
+        qMatrix_calculated = True
+        for i in range(grid_x):
+            for j in range(grid_y):
+                if gridMatrix[i][j] == Cell.Type.CLEAR:
+                    insert_text_ql(j, i, qMatrix[i][j])
+                if gridMatrix[i][j] == Cell.Type.GOAL:
+                    grid.create_text(((j+0.5)*cellWidth, (i+0.5)*cellWidth), text="Goal", fill='black')
+        print ii
 
 
 def find_path_ql():
