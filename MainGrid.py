@@ -1,3 +1,6 @@
+import random
+
+import numpy
 from tkinter import *
 import ttk
 from tkFileDialog import askopenfilename
@@ -8,12 +11,13 @@ import Cell
 import Qlearning
 import Astar
 
+
 ___author = "Abdul Rubaye"
 
 
 # The main class that includes the GUI interface
 class MainApp:
-    global root, rightFrame, leftFrame, radio_button_value,grid, gridMatrix, qMatrix, qlearner
+    global root, rightFrame, leftFrame, cell_radio_btn_val, grid, gridMatrix, qMatrix, qlearner
 
     cellWidth = Cell.World.CELL_WIDTH
     is_start_created = False
@@ -37,21 +41,25 @@ class MainApp:
         Label(self.rightFrame, text="    ", fg='white').grid(row=0, column=2, sticky=W)
         Label(self.rightFrame, text="    ", fg='white').grid(row=0, column=0, sticky=E)
 
-        self.grid = Canvas(self.leftFrame, width=800, heigh=800)
+        self.grid = Canvas(self.leftFrame, width=640, heigh=640)
 
         self.gridMatrix = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
         self.qMatrix = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
 
         self.qlearner = Qlearning.Algorithm(self.gridMatrix)
         self.qMatrix_calculated = False
-
-        self.radio_button_value = IntVar()
-        self.radio_button_value.set(1)
+        # Radio Buttons for Add/remove cell section
+        self.cell_radio_btn_val = IntVar()
+        self.cell_radio_btn_val.set(1)
+        # Radio Buttons for QL selection policies
+        self.policy_radio_btn_val = IntVar()
+        self.policy_radio_btn_val.set(1)
 
         self.set_new_grid()
         self.create_left_side_elements()
         self.grid.bind('<Button-2>', self.reset_start_goal_cell)
         self.grid.bind('<Button-1>', self.add_start_goal_cell)
+        self.randomm()
 
     # The world grid matrix initializer
     def initialize_grid_matrix(self):
@@ -141,10 +149,12 @@ class MainApp:
         map_file = askopenfilename(title="Select map file")
         if len(map_file) == 0:
             tkMessageBox.showwarning('No Selection', 'No map file was selected!')
-        self.convert_file_to_matrix(map_file)
-        self.create_grid()
+        self.goal = ()
+        self. start = ()
         self.is_start_created = False
         self.is_goal_created = False
+        self.convert_file_to_matrix(map_file)
+        self.create_grid()
 
     # Returns orders of the right side elements
     def get_elements_order(self):
@@ -168,14 +178,14 @@ class MainApp:
         (i, j) = (coordination.x/self.cellWidth, coordination.y/self.cellWidth)
         if (i < self.grid_x) & (j < self.grid_y):
             if self.gridMatrix[j][i] == Cell.Type.CLEAR:
-                if (self.radio_button_value.get() == 2) & (self.is_start_created is False):
+                if (self.cell_radio_btn_val.get() == 2) & (self.is_start_created is False):
                     self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
                                           fill=Cell.Color.START, width=1)
                     self.grid.create_text(((i+0.5)*self.cellWidth, (j+0.5)*self.cellWidth), text="Start", fill='black')
                     self.gridMatrix[j][i] = Cell.Type.START
                     self.start = (j,i)
                     self.is_start_created = True
-                elif (self.radio_button_value.get() == 3) & (self.is_goal_created is False):
+                elif (self.cell_radio_btn_val.get() == 3) & (self.is_goal_created is False):
                     self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
                                           fill=Cell.Color.GOAL, width=1)
                     self.grid.create_text(((i+0.5)*self.cellWidth, (j+0.5)*self.cellWidth), text="Goal", fill='black')
@@ -189,19 +199,19 @@ class MainApp:
         (i, j) = (coordination.x/self.cellWidth, coordination.y/self.cellWidth)
         if (i < self.grid_x) & (j < self.grid_y):
             if self.gridMatrix[j][i] == Cell.Type.START:
-                if self.radio_button_value.get() == 2:
+                if self.cell_radio_btn_val.get() == 2:
                     self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
                                           fill=Cell.Color.CLEAR, width=1)
                     self.gridMatrix[j][i] = Cell.Type.CLEAR
-                    start = ()
-                    is_start_created = False
+                    self.start = ()
+                    self.is_start_created = False
             elif self.gridMatrix[j][i] == Cell.Type.GOAL:
-                if self.radio_button_value.get() == 3:
+                if self.cell_radio_btn_val.get() == 3:
                     self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
                                           fill=Cell.Color.CLEAR, width=1)
                     self.gridMatrix[j][i] = Cell.Type.CLEAR
-                    goal = ()
-                    is_goal_created = False
+                    self.goal = ()
+                    self.is_goal_created = False
 
     # Renders a horizontal gray line
     def horizontal_line(self):
@@ -216,14 +226,14 @@ class MainApp:
         self.create_button("Upload Map",  20, self.open_file)
         self.create_button("Reset Grid", 20, self.set_new_grid)
         self.horizontal_line()
-        self.create_radio_buttons()
+        Label(self.rightFrame, text="Cell to add/remove?").grid(row=self.get_elements_order(), column=1, sticky=W)
+        self.create_radio_buttons("Start State", "Goal State", self.cell_radio_btn_val)
         self.horizontal_line()
         Label(self.rightFrame, text="Q-Learning Path Finder").grid(row=self.get_elements_order(), column=1, sticky=W)
+        self.create_radio_buttons("Softmax Policy", "epsilon-greedy Policy", self.policy_radio_btn_val)
         self.create_button("Start QL", 20, self.update_text)
         self.create_button("Pause", 20, self.pause_q_learning)
         self.create_button("Find Path", 20, self.find_path_ql)
-        Label(self.rightFrame, text="Enter Speed (1 to 10)").grid(row=self.get_elements_order(), column=1, sticky=W)
-        Entry(self.rightFrame, textvariable=self.entry).grid(row=self.get_elements_order(), column=1, sticky=W)
         self.horizontal_line()
         Label(self.rightFrame, text="A* Path Finder").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.create_button("Start A*", 20, self.a_star)
@@ -231,24 +241,31 @@ class MainApp:
     # Pauses the QL learning algorithm
     def pause_q_learning(self):
         self.pause = True
-        self.pqb.config(text='Loop terminated')
 
     # Creates the radio button for start/goal
-    def create_radio_buttons(self):
-        Label(self.rightFrame, text="Cell to add/remove?").grid(row=self.get_elements_order(), column=1, sticky=W)
-        Radiobutton(self.rightFrame, text="Start", variable=self.radio_button_value, value=2).grid(row=self.get_elements_order(), column=1, sticky=W)
-        Radiobutton(self.rightFrame, text="Goal", variable=self.radio_button_value, value=3).grid(row=self.get_elements_order(), column=1, sticky=W)
+    def create_radio_buttons(self, text1, text2, variable):
+        Radiobutton(self.rightFrame, text=text1, variable=variable, value=2).grid(row=self.get_elements_order(), column=1, sticky=W)
+        Radiobutton(self.rightFrame, text=text2, variable=variable, value=3).grid(row=self.get_elements_order(), column=1, sticky=W)
 
     # The main function that calls the QL algorithm
     def q_learning(self, tt):
         self.create_grid()
         if self.goal == ():
-
             tkMessageBox.showwarning('No Goal', 'Please select the goal state!')
             return
-        self.qMatrix = self.qlearner.learn(self.goal)
-        self.qMatrix_calculated = True
-        tt.put(0)
+
+        if self.policy_radio_btn_val.get() == 2:
+            self.qMatrix = self.qlearner.soft_max_policy(self.goal)
+            self.qMatrix_calculated = True
+            tt.put(0)
+            #todo disable the radio button so no more interactions occure
+        elif self.policy_radio_btn_val.get() == 3:
+            self.qMatrix = self.qlearner.e_greedy_policy(self.goal)
+            self.qMatrix_calculated = True
+            tt.put(0)
+        else:
+            tkMessageBox.showwarning('No Policy', 'Please select the selection policy before the Qlearning alg starts!')
+            return
 
     # Populate the q matrix value after each episode
     def create_gg(self):
@@ -319,34 +336,40 @@ class MainApp:
         return switcher.get(index, (x,y))
 
     # The main function that runs the QLearner using threading
+    # Spawn a new thread for running long loops in background
     def update_text(self):
-        '''
-        Spawn a new thread for running long loops in background
-        '''
         self.thread_queue = queue.Queue()
-
-        # self.new_thread = threading.Thread(target=runloop(self.thread_queue))
         self.new_thread = threading.Thread(target=self.q_learning(self.thread_queue))
         self.new_thread.start()
         self.root.after(1, self.listen_for_result())
 
     # Fetches the results and renderds them via threading
     def listen_for_result(self):
-        '''
-        Check if there is something in the queue
-        '''
         try:
             self.res = self.thread_queue.get(0)
             self.create_gg()
             if self.pause is False:
-                self.root.after(700, self.update_text)
+                self.root.after(1000, self.update_text)
         except queue.Empty:
             self.root.after(1000, self.listen_for_result)
+
+    def randomm(self):
+        self.random_pick()
+
+    def random_pick(self):
+        some_list = [0,1,2,3,4,5]
+        p=[0.6, 0.1, 0.1, 0.1, 0.1, 0.1]
+
+        x = random.uniform(0, 1)
+        cumulative_probability = 0.0
+        for item, item_probability in zip(some_list, p):
+            cumulative_probability += item_probability
+            if x < cumulative_probability: break
+
 
 
 # MAIN
 if __name__ == "__main__":
     root = Tk()
     main_app = MainApp(root)
-
     root.mainloop()

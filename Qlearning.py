@@ -28,11 +28,14 @@ class Algorithm:
                         q[i][j] = None
         return q
 
-    def learn(self, goal):
+    def e_greedy_policy(self, goal):
+        print('Nothing implemnted yet!')
+
+    def soft_max_policy(self, goal):
         self.goal = goal
 
         # i number of episodes per execution
-        for i in range(1):
+        for i in range(3):
             current_state = self.initial_state()
 
             while current_state != self.goal:
