@@ -35,23 +35,30 @@ class Algorithm:
         self.goal = goal
 
         # i number of episodes per execution
-        for i in range(3):
+        for i in range(10):
             current_state = self.initial_state()
+            tries_to_terminate_episode = 0
+            print ('1')
+            while current_state != self.goal or tries_to_terminate_episode <= 100:
 
-            while current_state != self.goal:
                 actions = self.find_possible_actions(current_state)
-
+                print ('2')
                 # deterministic mode: to select an action with probability 1
                 rand_action = randint(0,3)
+                print ('3')
                 next_state = actions[rand_action]
                 (x,y) = current_state
+                print ('4')
                 self.qMatrix[x][y][rand_action] = self.calculate_q(next_state)
                 # print '{}->{}'.format(current_state,next_state)
+                print ('5')
                 if next_state is not None:
                     current_state = next_state
-
+                print ('6')
+                tries_to_terminate_episode += 1
             # self.print_q()
-            print (time.time())
+            # print (time.time())
+        print ('7')
         return self.qMatrix
 
     def calculate_q(self, next_state):

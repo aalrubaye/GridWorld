@@ -41,7 +41,7 @@ class MainApp:
         Label(self.rightFrame, text="    ", fg='white').grid(row=0, column=2, sticky=W)
         Label(self.rightFrame, text="    ", fg='white').grid(row=0, column=0, sticky=E)
 
-        self.grid = Canvas(self.leftFrame, width=640, heigh=640)
+        self.grid = Canvas(self.leftFrame, width=800, heigh=800)
 
         self.gridMatrix = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
         self.qMatrix = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
@@ -85,7 +85,6 @@ class MainApp:
             3: Cell.Color.GOAL
         }
         return switcher.get(value, Cell.Color.CLEAR)
-
 
     def ql_color(self, top,bottom,right,left):
         sum = top+bottom+right+left
@@ -231,7 +230,7 @@ class MainApp:
         self.horizontal_line()
         Label(self.rightFrame, text="Q-Learning Path Finder").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.create_radio_buttons("Softmax Policy", "epsilon-greedy Policy", self.policy_radio_btn_val)
-        self.create_button("Start QL", 20, self.update_text)
+        self.create_button("Start QL", 20, self.run_through_threading)
         self.create_button("Pause", 20, self.pause_q_learning)
         self.create_button("Find Path", 20, self.find_path_ql)
         self.horizontal_line()
@@ -268,7 +267,7 @@ class MainApp:
             return
 
     # Populate the q matrix value after each episode
-    def create_gg(self):
+    def populate_q_to_graph(self):
             for i in range(self.grid_x):
                 for j in range(self.grid_y):
                     if self.gridMatrix[i][j] == Cell.Type.CLEAR:
@@ -278,7 +277,6 @@ class MainApp:
 
     # Finds the path after the ql algorithm is done
     def find_path_ql(self):
-
         if self.start == ():
             tkMessageBox.showwarning('No Start', 'Please select the start state!')
             return
@@ -337,7 +335,7 @@ class MainApp:
 
     # The main function that runs the QLearner using threading
     # Spawn a new thread for running long loops in background
-    def update_text(self):
+    def run_through_threading(self):
         self.thread_queue = queue.Queue()
         self.new_thread = threading.Thread(target=self.q_learning(self.thread_queue))
         self.new_thread.start()
@@ -346,10 +344,11 @@ class MainApp:
     # Fetches the results and renderds them via threading
     def listen_for_result(self):
         try:
-            self.res = self.thread_queue.get(0)
-            self.create_gg()
-            if self.pause is False:
-                self.root.after(1000, self.update_text)
+            res = self.thread_queue.get(0)
+            if self.qMatrix_calculated is True:
+                self.populate_q_to_graph()
+                if self.pause is False:
+                    self.root.after(1000, self.run_through_threading)
         except queue.Empty:
             self.root.after(1000, self.listen_for_result)
 
