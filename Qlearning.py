@@ -71,7 +71,7 @@ class Algorithm:
         self.goal = goal
 
         # i number of episodes per execution
-        for i in range(10):
+        for i in range(2):
             current_state = self.initial_state()
             tries_to_terminate_episode = 0
             # the episode will be terminated after the goal state is reached or a 100 episodes occur

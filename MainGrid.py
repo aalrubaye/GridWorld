@@ -51,6 +51,9 @@ class MainApp:
         # Radio Buttons for QL selection policies
         self.policy_radio_btn_val = IntVar()
         self.policy_radio_btn_val.set(1)
+        # Radio Buttons for heat map selection
+        self.heatmap_radio_btn_val = IntVar()
+        self.heatmap_radio_btn_val.set(2)
 
         self.set_new_grid()
         self.create_left_side_elements()
@@ -62,7 +65,6 @@ class MainApp:
         for i in range(self.grid_x):
             for j in range(self.grid_y):
                 self.gridMatrix[i][j] = 0
-                # self.qMatrix[i][j] = 0
 
     # Used to reset/set a new grid
     def set_new_grid(self):
@@ -83,6 +85,18 @@ class MainApp:
             3: Cell.Color.GOAL
         }
         return switcher.get(value, Cell.Color.CLEAR)
+
+    def poly_color(self, val):
+        if val <= 0:
+            return "gray72"
+        if -1 < val <= 25:
+            return "blanched almond"
+        if 25 < val <=50:
+            return "bisque"
+        if 50 < val <=75:
+            return "navajo white"
+        else:
+            return "sandy brown"
 
     def ql_color(self, top,bottom,right,left):
         sum = top+bottom+right+left
@@ -107,15 +121,22 @@ class MainApp:
         else:
             return "#ffa53d"
 
-
-    def heat_map_ql(self, x, y, q_matrix):
+    def heat_map(self, x, y, q_matrix):
         top = round(q_matrix[0],1)
         bottom = round(q_matrix[1],1)
         right = round(q_matrix[2],1)
         left = round(q_matrix[3],1)
 
-        qlc = self.ql_color(top,bottom,right,left)
-        self.grid.create_rectangle(x*self.cellWidth, y*self.cellWidth, (x+1)*self.cellWidth, (y+1)*self.cellWidth, fill=qlc, width=1)
+        cellWidth = self.cellWidth
+
+        if self.heatmap_radio_btn_val.get() == 2:
+            self.grid.create_rectangle(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth, fill=self.ql_color(top,bottom,right,left), width=1)
+        else:
+            self.grid.create_polygon([x*cellWidth,y*cellWidth,x*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=self.poly_color(left), width=1, outline='gray')
+            self.grid.create_polygon([x*cellWidth,y*cellWidth,(x+1)*cellWidth,y*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=self.poly_color(top), width=1, outline='gray')
+            self.grid.create_polygon([x*cellWidth,(y+1)*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,(y+1)*cellWidth], fill=self.poly_color(bottom), width=1, outline='gray')
+            self.grid.create_polygon([(x+1)*cellWidth,y*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,(x+1)*cellWidth,y*cellWidth], fill=self.poly_color(right), width=1, outline='gray')
+
         self.insert_text_ql(x,y,q_matrix)
 
     # Adds the text for QL path planning
@@ -258,6 +279,10 @@ class MainApp:
         self.horizontal_line()
         Label(self.rightFrame, text="A* Path Finder").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.create_button("Start A*", 20, self.a_star)
+        self.horizontal_line()
+        Label(self.rightFrame, text="Select the type of the heat map:").grid(row=self.get_elements_order(), column=1, sticky=W)
+        self.create_radio_buttons("Total Reward Heat Map", "Polygon Heat Map", self.heatmap_radio_btn_val)
+
 
     # Pauses the QL learning algorithm
     def pause_q_learning(self):
@@ -293,7 +318,7 @@ class MainApp:
             for i in range(self.grid_x):
                 for j in range(self.grid_y):
                     if self.gridMatrix[i][j] == Cell.Type.CLEAR:
-                        self.heat_map_ql(j, i, self.qMatrix[i][j])
+                        self.heat_map(j, i, self.qMatrix[i][j])
                     if self.gridMatrix[i][j] == Cell.Type.GOAL:
                         self.grid.create_text(((j+0.5)*self.cellWidth, (i+0.5)*self.cellWidth), text="Goal", fill='black')
 
@@ -382,7 +407,7 @@ class MainApp:
             if self.qMatrix_calculated is True:
                 self.populate_q_to_graph()
                 if self.pause is False:
-                    self.root.after(720, self.run_through_threading)
+                    self.root.after(1200, self.run_through_threading)
         except queue.Empty:
             self.root.after(1000, self.listen_for_result)
 
