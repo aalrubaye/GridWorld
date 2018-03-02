@@ -24,8 +24,8 @@ class MainApp:
     (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
     qMatrix_calculated = False
     pause = False
-    entry = "1"
     right_elements_starting_row = 3
+    path = 0
 
     def __init__(self, root):
         self.root = root
@@ -163,6 +163,19 @@ class MainApp:
         self.convert_file_to_matrix(map_file)
         self.create_grid()
         self.pause = False
+        self.path = 0
+
+    def get_path_color(self):
+        switcher = {
+            0: ("#ff8586","#ce9ec9"),
+            1: ("#cd85ff","#9c9dfc"),
+            2: ("#858aff","#4dc8f6")
+        }
+        path = self.path
+        self.path += 1
+        return switcher.get(path, ("#ff8586","#ce9ec9"))
+
+        self.path += 1
 
     # Returns orders of the right side elements
     def get_elements_order(self):
@@ -294,6 +307,7 @@ class MainApp:
             return
         current = self.start
         path = []
+        path.append(current)
         while current != self.goal:
             max_q_index = self.qlearner.max_q_index(current)
             while True:
@@ -304,11 +318,14 @@ class MainApp:
             if next_state != self.goal:
                 path.append(next_state)
             current = next_state
-
+        (path_color, start_color) = self.get_path_color()
         for (i,j) in path:
-            self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill='green', width=1)
-            self.insert_text_ql(j,i,self.qMatrix[i][j])
-
+            if (i,j) == self.start:
+                self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill=start_color, width=1)
+                self.grid.create_text(((j+0.5)*self.cellWidth, (i+0.5)*self.cellWidth), text="Start", fill='black')
+            else:
+                self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill=path_color, width=1)
+                self.insert_text_ql(j,i,self.qMatrix[i][j])
 
     # Find the states on the path for QL Algorithm
     def next_state_on_path(self, state, index):
@@ -321,8 +338,6 @@ class MainApp:
         }
         return switcher.get(index, (x,y))
 
-
-
     # the main function of the A* algorithm
     def a_star(self):
         if (self.start != ()) and (self.goal != ()):
@@ -333,14 +348,17 @@ class MainApp:
 
             cellWidth = self.cellWidth
 
+            (path_color,start_color) = self.get_path_color()
             if evaluated_nodes:
                 for i in range (self.grid_x):
                     for j in range (self.grid_y):
                         if evaluated_nodes[i][j] != 0:
                             if (i,j) == (x,y):
                                 self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.GOAL, width=1)
+                            elif (i,j) == self.start:
+                                self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=start_color, width=1)
                             elif (i,j) in path:
-                                self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill='green', width=1)
+                                self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=path_color, width=1)
                             else:
                                 self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.VISITED, width=1)
                             self.insert_text_a_star(j,i,evaluated_nodes[i][j])
@@ -364,7 +382,7 @@ class MainApp:
             if self.qMatrix_calculated is True:
                 self.populate_q_to_graph()
                 if self.pause is False:
-                    self.root.after(1000, self.run_through_threading)
+                    self.root.after(720, self.run_through_threading)
         except queue.Empty:
             self.root.after(1000, self.listen_for_result)
 

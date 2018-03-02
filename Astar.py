@@ -134,7 +134,7 @@ class Algorithm:
                     (x_min,y_min) = sortable[i]
             route.append(min_cell)
             neighbors = self.direct_neighbors(min_cell)
-
+        route.append(self.start)
         return route
 
     # Calculates h(n)
