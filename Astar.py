@@ -129,9 +129,7 @@ class Algorithm:
 
             for i in range (1, len(sortable)):
                 (x,y) = sortable[i]
-                one = self.route_nodes[x][y].distance
-                two = self.route_nodes[x_min][y_min].distance
-                if one < two :
+                if self.route_nodes[x][y].distance < self.route_nodes[x_min][y_min].distance:
                     min_cell = sortable[i]
                     (x_min,y_min) = sortable[i]
             route.append(min_cell)

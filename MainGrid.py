@@ -59,13 +59,13 @@ class MainApp:
         self.create_left_side_elements()
         self.grid.bind('<Button-2>', self.reset_start_goal_cell)
         self.grid.bind('<Button-1>', self.add_start_goal_cell)
-        self.randomm()
 
     # The world grid matrix initializer
     def initialize_grid_matrix(self):
         for i in range(self.grid_x):
             for j in range(self.grid_y):
                 self.gridMatrix[i][j] = 0
+                self.qMatrix[i][j] = 0
 
     # Used to reset/set a new grid
     def set_new_grid(self):
@@ -144,7 +144,6 @@ class MainApp:
 
     # opens a map matrix from a file and renders it to the grid
     def open_file(self):
-        print (self.entry)
         map_file = askopenfilename(title="Select map file")
         if len(map_file) == 0:
             tkMessageBox.showwarning('No Selection', 'No map file was selected!')
@@ -287,13 +286,31 @@ class MainApp:
         path = []
         while current != self.goal:
             max_q_index = self.qlearner.max_q_index(current)
-            next_state = self.next_state_on_path(current, max_q_index)
+            while True:
+                next_state = self.next_state_on_path(current, max_q_index)
+                (x,y) = next_state
+                if self.gridMatrix[x][y] != Cell.Type.OBSTACLE:
+                    break
             if next_state != self.goal:
                 path.append(next_state)
             current = next_state
 
         for (i,j) in path:
             self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill='green', width=1)
+
+
+    # Find the states on the path for QL Algorithm
+    def next_state_on_path(self, state, index):
+        (x,y) = state
+        switcher = {
+            0: (x-1, y),
+            1: (x+1, y),
+            2: (x, y+1),
+            3: (x, y-1)
+        }
+        return switcher.get(index, (x,y))
+
+
 
     # the main function of the A* algorithm
     def a_star(self):
@@ -321,18 +338,6 @@ class MainApp:
                 tkMessageBox.showwarning('No Route Found', 'There is no possible route to the goal! You still can re select either one of the start or goal cell.')
         else:
             tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
-
-    # Find the states on the path for QL Algorithm
-    def next_state_on_path(self, state, index):
-        (x,y) = state
-        switcher = {
-            0: (x-1, y),
-            1: (x+1, y),
-            2: (x, y+1),
-            3: (x, y-1)
-        }
-        return switcher.get(index, (x,y))
-
     # The main function that runs the QLearner using threading
     # Spawn a new thread for running long loops in background
     def run_through_threading(self):
@@ -351,21 +356,6 @@ class MainApp:
                     self.root.after(1000, self.run_through_threading)
         except queue.Empty:
             self.root.after(1000, self.listen_for_result)
-
-    def randomm(self):
-        self.random_pick()
-
-    def random_pick(self):
-        some_list = [0,1,2,3,4,5]
-        p=[0.6, 0.1, 0.1, 0.1, 0.1, 0.1]
-
-        x = random.uniform(0, 1)
-        cumulative_probability = 0.0
-        for item, item_probability in zip(some_list, p):
-            cumulative_probability += item_probability
-            if x < cumulative_probability: break
-
-
 
 # MAIN
 if __name__ == "__main__":
