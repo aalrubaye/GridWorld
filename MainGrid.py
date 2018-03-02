@@ -7,15 +7,13 @@ import queue
 import Cell
 import Qlearning
 import Astar
-
-
+import Utility
 
 ___author = "Abdul Rubaye"
 
 
 # The main class that includes the GUI interface
 class MainApp:
-    global root, rightFrame, leftFrame, cell_radio_btn_val, grid, gridMatrix, qMatrix, qlearner
 
     cellWidth = Cell.World.CELL_WIDTH
     is_start_created = False
@@ -40,12 +38,9 @@ class MainApp:
         self.leftFrame.pack(side=LEFT, fill=Y)
         Label(self.rightFrame, text="    ", fg='white').grid(row=0, column=2, sticky=W)
         Label(self.rightFrame, text="    ", fg='white').grid(row=0, column=0, sticky=E)
-
-        self.grid = Canvas(self.leftFrame, width=800, heigh=800)
-
-        self.gridMatrix = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
-        self.qMatrix = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
-
+        self.grid = Canvas(self.leftFrame, width=650, heigh=650)
+        self.gridMatrix = [[0 for _ in range(self.grid_y)] for _ in range(self.grid_x)]
+        self.qMatrix = [[0 for _ in range(self.grid_y)] for _ in range(self.grid_x)]
         self.qlearner = Qlearning.Algorithm(self.gridMatrix)
         self.qMatrix_calculated = False
         # Radio Buttons for Add/remove cell section
@@ -57,14 +52,12 @@ class MainApp:
         # Radio Buttons for heat map selection
         self.heatmap_radio_btn_val = IntVar()
         self.heatmap_radio_btn_val.set(2)
-
         self.set_new_grid()
         self.create_left_side_elements()
         self.grid.bind('<Button-2>', self.reset_start_goal_cell)
         self.grid.bind('<Button-1>', self.add_start_goal_cell)
         self.alpha_text_var = StringVar()
         self.gamma_text_var = StringVar()
-
 
     # The world grid matrix initializer
     def initialize_grid_matrix(self):
@@ -82,91 +75,40 @@ class MainApp:
         self.is_goal_created = False
         self.qMatrix = None
 
-    # Returns a cell color based on the value from the map matrix
-    def cell_color(self, value):
-        switcher = {
-            0: Cell.Color.CLEAR,
-            1: Cell.Color.OBSTACLE,
-            2: Cell.Color.START,
-            3: Cell.Color.GOAL
-        }
-        return switcher.get(value, Cell.Color.CLEAR)
+    # Returns a list of q values of a state
+    def get_q_values(self, x, y):
+        q_list=[]
+        for i in range(4):
+            q_list.append(round(self.qMatrix[y][x][i], 1))
+        return q_list
 
-    def poly_color(self, val):
-        if val <= 0:
-            return "gray72"
-        if -1 < val <= 25:
-            return "blanched almond"
-        if 25 < val <=50:
-            return "bisque"
-        if 50 < val <=75:
-            return "navajo white"
-        else:
-            return "sandy brown"
-
-    def ql_color(self, top,bottom,right,left):
-        sum = top+bottom+right+left
-        if sum <= 30:
-            return "#fff8eb"
-        if 30 < sum <= 60:
-            return "#fff1de"
-        if 60 < sum <=90:
-            return "#ffe6c7"
-        if 90 < sum <=120:
-            return "#ffe6c7"
-        if 120 <sum<=150:
-            return "#ffd19a"
-        if 150<sum<=180:
-            return "#ffc887"
-        if 180<sum<=210:
-            return "#ffbe72"
-        if 210<sum<=240:
-            return "#ffb660"
-        if 240<sum<=270:
-            return "#ffae52"
-        else:
-            return "#ffa53d"
-
-    def heat_map(self, x, y, q_matrix):
-        top = round(q_matrix[0],1)
-        bottom = round(q_matrix[1],1)
-        right = round(q_matrix[2],1)
-        left = round(q_matrix[3],1)
-
+    def heat_map(self, x, y):
+        (top, bottom, right, left) = self.get_q_values(x,y)
         cellWidth = self.cellWidth
-
         if self.heatmap_radio_btn_val.get() == 2:
-            self.grid.create_rectangle(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth, fill=self.ql_color(top,bottom,right,left), width=1)
+            self.grid.create_rectangle(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth, fill=Utility.total_reward_heatmap_color(top,bottom,right,left), width=1)
         else:
-            self.grid.create_polygon([x*cellWidth,y*cellWidth,x*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=self.poly_color(left), width=1, outline='gray')
-            self.grid.create_polygon([x*cellWidth,y*cellWidth,(x+1)*cellWidth,y*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=self.poly_color(top), width=1, outline='gray')
-            self.grid.create_polygon([x*cellWidth,(y+1)*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,(y+1)*cellWidth], fill=self.poly_color(bottom), width=1, outline='gray')
-            self.grid.create_polygon([(x+1)*cellWidth,y*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,(x+1)*cellWidth,y*cellWidth], fill=self.poly_color(right), width=1, outline='gray')
+            self.grid.create_polygon([x*cellWidth,y*cellWidth,x*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=Utility.poly_heatmap_color(left), width=1, outline='gray')
+            self.grid.create_polygon([x*cellWidth,y*cellWidth,(x+1)*cellWidth,y*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=Utility.poly_heatmap_color(top), width=1, outline='gray')
+            self.grid.create_polygon([x*cellWidth,(y+1)*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,(y+1)*cellWidth], fill=Utility.poly_heatmap_color(bottom), width=1, outline='gray')
+            self.grid.create_polygon([(x+1)*cellWidth,y*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,(x+1)*cellWidth,y*cellWidth], fill=Utility.poly_heatmap_color(right), width=1, outline='gray')
 
-        self.insert_text_ql(x,y,q_matrix)
+        self.insert_text_ql(x,y)
 
     # Adds the text for QL path planning
-    def insert_text_ql(self, x, y, q_matrix):
-
-        top = round(q_matrix[0],1)
-        bottom = round(q_matrix[1],1)
-        right = round(q_matrix[2],1)
-        left = round(q_matrix[3],1)
-
-        # qlc = self.ql_color(top,bottom,right,left)
-        # self.grid.create_rectangle(x*self.cellWidth, y*self.cellWidth, (x+1)*self.cellWidth, (y+1)*self.cellWidth, fill=qlc, width=1)
-
+    def insert_text_ql(self, x, y):
+        (top, bottom, right, left) = self.get_q_values(x,y)
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.25)*self.cellWidth), text=top, fill='black')
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.75)*self.cellWidth), text=bottom, fill='black')
         self.grid.create_text(((x+0.75)*self.cellWidth, (y+0.5)*self.cellWidth), text=right, fill='black')
         self.grid.create_text(((x+0.25)*self.cellWidth, (y+0.5)*self.cellWidth), text=left, fill='black')
 
     # Adds the text for A_star path planning
-    def insert_text_a_star(self, x, y, routeNode):
-        cost = "d="+ str(routeNode.distance)
-        fscore = "f="+str(round(routeNode.f_score,1))
-        heuristic = "h="+str(round(routeNode.heuristic,1))
-        self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.25)*self.cellWidth), text=fscore, fill='black')
+    def insert_text_a_star(self, x, y, route_node):
+        f_score = "f=" + str(round(route_node.f_score, 1))
+        cost = "g=" + str(route_node.distance)
+        heuristic = "h=" + str(round(route_node.heuristic, 1))
+        self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.25)*self.cellWidth), text=f_score, fill='black')
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.5)*self.cellWidth), text=cost, fill='black')
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.75)*self.cellWidth), text=heuristic, fill='black')
 
@@ -174,11 +116,11 @@ class MainApp:
     def create_grid(self):
         for i in range(self.grid_x):
             for j in range(self.grid_y):
-                color = self.cell_color(self.gridMatrix[j][i])
+                color = Utility.cell_color(self.gridMatrix[j][i])
                 self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth, fill=color, width=1)
         self.grid.pack(side=LEFT)
 
-    # opens a map matrix from a file and renders it to the grid
+    # Opens a map matrix from a file and renders it to the grid
     def open_file(self):
         map_file = askopenfilename(title="Select map file")
         if len(map_file) == 0:
@@ -192,7 +134,7 @@ class MainApp:
         self.pause = False
         self.path = 0
 
-
+    # Returns the colors of a path
     def get_path_color(self):
         switcher = {
             0: ("#ff8586","#ce9ec9"),
@@ -202,8 +144,6 @@ class MainApp:
         path = self.path
         self.path += 1
         return switcher.get(path, ("#ff8586","#ce9ec9"))
-
-        self.path += 1
 
     # Returns orders of the right side elements
     def get_elements_order(self):
@@ -228,18 +168,16 @@ class MainApp:
         if (i < self.grid_x) & (j < self.grid_y):
             if self.gridMatrix[j][i] == Cell.Type.CLEAR:
                 if (self.cell_radio_btn_val.get() == 2) & (self.is_start_created is False):
-                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                                          fill=Cell.Color.START, width=1)
+                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth, fill=Cell.Color.START, width=1)
                     self.grid.create_text(((i+0.5)*self.cellWidth, (j+0.5)*self.cellWidth), text="Start", fill='black')
                     self.gridMatrix[j][i] = Cell.Type.START
-                    self.start = (j,i)
+                    self.start = (j, i)
                     self.is_start_created = True
                 elif (self.cell_radio_btn_val.get() == 3) & (self.is_goal_created is False):
-                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                                          fill=Cell.Color.GOAL, width=1)
+                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth, fill=Cell.Color.GOAL, width=1)
                     self.grid.create_text(((i+0.5)*self.cellWidth, (j+0.5)*self.cellWidth), text="Goal", fill='black')
                     self.gridMatrix[j][i] = Cell.Type.GOAL
-                    self.goal = (j,i)
+                    self.goal = (j, i)
                     self.is_goal_created = True
 
     # Resets the start cell or goal cell via click event
@@ -249,15 +187,12 @@ class MainApp:
         if (i < self.grid_x) & (j < self.grid_y):
             if self.gridMatrix[j][i] == Cell.Type.START:
                 if self.cell_radio_btn_val.get() == 2:
-                    # self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                    #                       fill=Cell.Color.CLEAR, width=1)
                     self.gridMatrix[j][i] = Cell.Type.CLEAR
                     self.start = ()
                     self.is_start_created = False
             elif self.gridMatrix[j][i] == Cell.Type.GOAL:
                 if self.cell_radio_btn_val.get() == 3:
-                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                                          fill=Cell.Color.CLEAR, width=1)
+                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth, fill=Cell.Color.CLEAR, width=1)
                     self.gridMatrix[j][i] = Cell.Type.CLEAR
                     self.goal = ()
                     self.is_goal_created = False
@@ -290,16 +225,14 @@ class MainApp:
         Label(self.rightFrame, text="Select the type of the heat map:").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.create_radio_buttons("Total Reward Heat Map", "Polygon Heat Map", self.heatmap_radio_btn_val)
         self.horizontal_line()
-        self.alpha_entry = Entry(self.rightFrame, textvariable=self.alpha_text_var)
         Label(self.rightFrame, text="alpha:").grid(row=self.get_elements_order(), column=1, sticky=W)
+        self.alpha_entry = Entry(self.rightFrame, textvariable=self.alpha_text_var)
         self.alpha_entry.insert(0, "1")
         self.alpha_entry.grid(row=self.get_elements_order(), column=1, sticky=W)
         Label(self.rightFrame, text="gamma:").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.gamma_entry = Entry(self.rightFrame, textvariable=self.gamma_text_var)
         self.gamma_entry.insert(0, "0.8")
         self.gamma_entry.grid(row=self.get_elements_order(), column=1, sticky=W)
-
-
 
     # Pauses the QL learning algorithm
     def pause_q_learning(self):
@@ -323,7 +256,6 @@ class MainApp:
             self.qMatrix = self.qlearner.soft_max_policy(self.goal, (alpha,gamma))
             self.qMatrix_calculated = True
             tt.put(0)
-            #todo disable the radio button so no more interactions occure
         elif self.policy_radio_btn_val.get() == 3:
             self.qMatrix = self.qlearner.e_greedy_policy(self.goal, (alpha, gamma))
             self.qMatrix_calculated = True
@@ -337,7 +269,7 @@ class MainApp:
             for i in range(self.grid_x):
                 for j in range(self.grid_y):
                     if self.gridMatrix[i][j] == Cell.Type.CLEAR:
-                        self.heat_map(j, i, self.qMatrix[i][j])
+                        self.heat_map(j, i)
                     if self.gridMatrix[i][j] == Cell.Type.GOAL:
                         self.grid.create_text(((j+0.5)*self.cellWidth, (i+0.5)*self.cellWidth), text="Goal", fill='black')
 
@@ -355,32 +287,21 @@ class MainApp:
         while current != self.goal:
             max_q_index = self.qlearner.max_q_index(current)
             while True:
-                next_state = self.next_state_on_path(current, max_q_index)
-                (x,y) = next_state
+                next_state = Utility.next_state_on_path(current, max_q_index)
+                (x, y) = next_state
                 if self.gridMatrix[x][y] != Cell.Type.OBSTACLE:
                     break
             if next_state != self.goal:
                 path.append(next_state)
             current = next_state
         (path_color, start_color) = self.get_path_color()
-        for (i,j) in path:
-            if (i,j) == self.start:
+        for (i, j) in path:
+            if (i, j) == self.start:
                 self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill=start_color, width=1)
                 self.grid.create_text(((j+0.5)*self.cellWidth, (i+0.5)*self.cellWidth), text="Start", fill='black')
             else:
                 self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill=path_color, width=1)
-                self.insert_text_ql(j,i,self.qMatrix[i][j])
-
-    # Find the states on the path for QL Algorithm
-    def next_state_on_path(self, state, index):
-        (x,y) = state
-        switcher = {
-            0: (x-1, y),
-            1: (x+1, y),
-            2: (x, y+1),
-            3: (x, y-1)
-        }
-        return switcher.get(index, (x,y))
+                self.insert_text_ql(j,i)
 
     # the main function of the A* algorithm
     def a_star(self):
@@ -411,6 +332,7 @@ class MainApp:
                 tkMessageBox.showwarning('No Route Found', 'There is no possible route to the goal! You still can re select either one of the start or goal cell.')
         else:
             tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
+
     # The main function that runs the QLearner using threading
     # Spawn a new thread for running long loops in background
     def run_through_threading(self):
@@ -419,16 +341,17 @@ class MainApp:
         self.new_thread.start()
         self.root.after(1, self.listen_for_result())
 
-    # Fetches the results and renderds them via threading
+    # Fetches the results and renders them via threading
     def listen_for_result(self):
         try:
-            res = self.thread_queue.get(0)
+            self.thread_queue.get(0)
             if self.qMatrix_calculated is True:
                 self.populate_q_to_graph()
                 if self.pause is False:
                     self.root.after(1200, self.run_through_threading)
         except queue.Empty:
             self.root.after(1000, self.listen_for_result)
+
 
 # MAIN
 if __name__ == "__main__":
