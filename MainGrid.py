@@ -25,7 +25,7 @@ class MainApp:
     qMatrix_calculated = False
     pause = False
     entry = "1"
-    element_order = 3
+    right_elements_starting_row = 3
 
     def __init__(self, root):
         self.root = root
@@ -62,7 +62,7 @@ class MainApp:
         for i in range(self.grid_x):
             for j in range(self.grid_y):
                 self.gridMatrix[i][j] = 0
-                self.qMatrix[i][j] = 0
+                # self.qMatrix[i][j] = 0
 
     # Used to reset/set a new grid
     def set_new_grid(self):
@@ -72,6 +72,7 @@ class MainApp:
         self.start = ()
         self.is_start_created = False
         self.is_goal_created = False
+        self.qMatrix = None
 
     # Returns a cell color based on the value from the map matrix
     def cell_color(self, value):
@@ -106,6 +107,17 @@ class MainApp:
         else:
             return "#ffa53d"
 
+
+    def heat_map_ql(self, x, y, q_matrix):
+        top = round(q_matrix[0],1)
+        bottom = round(q_matrix[1],1)
+        right = round(q_matrix[2],1)
+        left = round(q_matrix[3],1)
+
+        qlc = self.ql_color(top,bottom,right,left)
+        self.grid.create_rectangle(x*self.cellWidth, y*self.cellWidth, (x+1)*self.cellWidth, (y+1)*self.cellWidth, fill=qlc, width=1)
+        self.insert_text_ql(x,y,q_matrix)
+
     # Adds the text for QL path planning
     def insert_text_ql(self, x, y, q_matrix):
 
@@ -114,8 +126,8 @@ class MainApp:
         right = round(q_matrix[2],1)
         left = round(q_matrix[3],1)
 
-        qlc = self.ql_color(top,bottom,right,left)
-        self.grid.create_rectangle(x*self.cellWidth, y*self.cellWidth, (x+1)*self.cellWidth, (y+1)*self.cellWidth, fill=qlc, width=1)
+        # qlc = self.ql_color(top,bottom,right,left)
+        # self.grid.create_rectangle(x*self.cellWidth, y*self.cellWidth, (x+1)*self.cellWidth, (y+1)*self.cellWidth, fill=qlc, width=1)
 
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.25)*self.cellWidth), text=top, fill='black')
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.75)*self.cellWidth), text=bottom, fill='black')
@@ -150,11 +162,12 @@ class MainApp:
         self.is_goal_created = False
         self.convert_file_to_matrix(map_file)
         self.create_grid()
+        self.pause = False
 
     # Returns orders of the right side elements
     def get_elements_order(self):
-        self.element_order += 1
-        return self.element_order
+        self.right_elements_starting_row += 1
+        return self.right_elements_starting_row
 
     # converts a map file content to a grid matrix
     def convert_file_to_matrix(self, map_file):
@@ -195,8 +208,8 @@ class MainApp:
         if (i < self.grid_x) & (j < self.grid_y):
             if self.gridMatrix[j][i] == Cell.Type.START:
                 if self.cell_radio_btn_val.get() == 2:
-                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                                          fill=Cell.Color.CLEAR, width=1)
+                    # self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
+                    #                       fill=Cell.Color.CLEAR, width=1)
                     self.gridMatrix[j][i] = Cell.Type.CLEAR
                     self.start = ()
                     self.is_start_created = False
@@ -267,7 +280,7 @@ class MainApp:
             for i in range(self.grid_x):
                 for j in range(self.grid_y):
                     if self.gridMatrix[i][j] == Cell.Type.CLEAR:
-                        self.insert_text_ql(j, i, self.qMatrix[i][j])
+                        self.heat_map_ql(j, i, self.qMatrix[i][j])
                     if self.gridMatrix[i][j] == Cell.Type.GOAL:
                         self.grid.create_text(((j+0.5)*self.cellWidth, (i+0.5)*self.cellWidth), text="Goal", fill='black')
 
@@ -294,6 +307,7 @@ class MainApp:
 
         for (i,j) in path:
             self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill='green', width=1)
+            self.insert_text_ql(j,i,self.qMatrix[i][j])
 
 
     # Find the states on the path for QL Algorithm
