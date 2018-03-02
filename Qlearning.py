@@ -51,7 +51,7 @@ class Algorithm:
                 break
         return item
 
-    def e_greedy_policy(self, goal):
+    def e_greedy_policy(self, goal, parameters):
         self.goal = goal
         for i in range (10):
             current_state = self.initial_state()
@@ -62,12 +62,12 @@ class Algorithm:
                 next_state = actions[rand_action]
 
                 # policyType = [softmax = 0, e-greedy = 1]
-                self.update_q_value(current_state, rand_action, next_state, 1)
+                self.update_q_value(current_state, rand_action, next_state, parameters, 1)
                 if next_state is not None:
                     current_state = next_state
         return self.qMatrix
 
-    def soft_max_policy(self, goal):
+    def soft_max_policy(self, goal, parameters):
         self.goal = goal
 
         # i number of episodes per execution
@@ -81,18 +81,18 @@ class Algorithm:
                 rand_action = randint(0,3)
                 next_state = actions[rand_action]
                 # policyType = [softmax = 0, e-greedy = 1]
-                self.update_q_value(current_state, rand_action, next_state, 0)
+                self.update_q_value(current_state, rand_action, next_state, parameters, 0)
                 # print '{}->{}'.format(current_state,next_state)
                 if next_state is not None:
                     current_state = next_state
                 tries_to_terminate_episode += 1
         return self.qMatrix
 
-    def update_q_value(self, current, action, next_state, policy_type):
+    def update_q_value(self, current, action, next_state, (alpha, gamma), policy_type):
         (x,y) = current
-        self.qMatrix[x][y][action] += self.alpha*(self.calculate_q(current, next_state, policy_type) - self.qMatrix[x][y][action])
+        self.qMatrix[x][y][action] += alpha*(self.calculate_q(current, next_state, gamma, policy_type) - self.qMatrix[x][y][action])
 
-    def calculate_q(self, current, next_state, policy_type):
+    def calculate_q(self, current, next_state, gamma, policy_type):
         was_none = False
         if next_state is None:
             next_state = current
@@ -111,10 +111,10 @@ class Algorithm:
                 new_max += (self.qMatrix[x][y][i] * 0.6)
 
         if policy_type == 0:
-            q_a = self.reward(next_state, was_none)+self.gamma*max
+            q_a = self.reward(next_state, was_none)+gamma*max
         else:
 
-            q_a = self.reward(next_state, was_none)+self.gamma*new_max
+            q_a = self.reward(next_state, was_none)+gamma*new_max
 
         return q_a
 
@@ -147,7 +147,6 @@ class Algorithm:
         random_state = (rand_x, rand_y)
         return random_state
 
-    #todo switcher
     def is_clear(self, state):
         if state is None:
             return False

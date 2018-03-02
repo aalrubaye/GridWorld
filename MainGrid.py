@@ -9,6 +9,7 @@ import Qlearning
 import Astar
 
 
+
 ___author = "Abdul Rubaye"
 
 
@@ -26,6 +27,8 @@ class MainApp:
     pause = False
     right_elements_starting_row = 3
     path = 0
+    alpha_text_var = None
+    gamma_text_var = None
 
     def __init__(self, root):
         self.root = root
@@ -59,6 +62,9 @@ class MainApp:
         self.create_left_side_elements()
         self.grid.bind('<Button-2>', self.reset_start_goal_cell)
         self.grid.bind('<Button-1>', self.add_start_goal_cell)
+        self.alpha_text_var = StringVar()
+        self.gamma_text_var = StringVar()
+
 
     # The world grid matrix initializer
     def initialize_grid_matrix(self):
@@ -186,6 +192,7 @@ class MainApp:
         self.pause = False
         self.path = 0
 
+
     def get_path_color(self):
         switcher = {
             0: ("#ff8586","#ce9ec9"),
@@ -282,6 +289,16 @@ class MainApp:
         self.horizontal_line()
         Label(self.rightFrame, text="Select the type of the heat map:").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.create_radio_buttons("Total Reward Heat Map", "Polygon Heat Map", self.heatmap_radio_btn_val)
+        self.horizontal_line()
+        self.alpha_entry = Entry(self.rightFrame, textvariable=self.alpha_text_var)
+        Label(self.rightFrame, text="alpha:").grid(row=self.get_elements_order(), column=1, sticky=W)
+        self.alpha_entry.insert(0, "1")
+        self.alpha_entry.grid(row=self.get_elements_order(), column=1, sticky=W)
+        Label(self.rightFrame, text="gamma:").grid(row=self.get_elements_order(), column=1, sticky=W)
+        self.gamma_entry = Entry(self.rightFrame, textvariable=self.gamma_text_var)
+        self.gamma_entry.insert(0, "0.8")
+        self.gamma_entry.grid(row=self.get_elements_order(), column=1, sticky=W)
+
 
 
     # Pauses the QL learning algorithm
@@ -296,17 +313,19 @@ class MainApp:
     # The main function that calls the QL algorithm
     def q_learning(self, tt):
         self.create_grid()
+        alpha = float(self.alpha_entry.get())
+        gamma = float(self.gamma_entry.get())
         if self.goal == ():
             tkMessageBox.showwarning('No Goal', 'Please select the goal state!')
             return
 
         if self.policy_radio_btn_val.get() == 2:
-            self.qMatrix = self.qlearner.soft_max_policy(self.goal)
+            self.qMatrix = self.qlearner.soft_max_policy(self.goal, (alpha,gamma))
             self.qMatrix_calculated = True
             tt.put(0)
             #todo disable the radio button so no more interactions occure
         elif self.policy_radio_btn_val.get() == 3:
-            self.qMatrix = self.qlearner.e_greedy_policy(self.goal)
+            self.qMatrix = self.qlearner.e_greedy_policy(self.goal, (alpha, gamma))
             self.qMatrix_calculated = True
             tt.put(0)
         else:
