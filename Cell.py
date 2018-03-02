@@ -1,6 +1,7 @@
 from enum import Enum
 
 
+# The enum for Cell Type
 class Type(Enum):
     CLEAR = 0
     OBSTACLE = 1
@@ -9,6 +10,7 @@ class Type(Enum):
     VISITED = 4
 
 
+# The enum for Cell color
 class Color(Enum):
     CLEAR = "floral white"
     OBSTACLE = "black"
@@ -16,6 +18,8 @@ class Color(Enum):
     GOAL = "orange"
     VISITED = "khaki1"
 
+
+# The grid world properties
 class World(Enum):
     CELL_WIDTH = 80
     X=7

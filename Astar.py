@@ -1,4 +1,3 @@
-import math
 import RouteNode
 import Cell
 import Utility
@@ -163,4 +162,3 @@ class Algorithm:
             self.close_list.append(node)
             self.open_list.remove(node)
             return node
-

@@ -1,5 +1,7 @@
 import Cell
 import math
+from random import *
+import random
 
 ___author = "Abdul Rubaye"
 
@@ -76,6 +78,7 @@ def direct_neighbors(node, grid_x, grid_y):
 
     return [top, bottom, left, right]
 
+
 # Calculates the linear distance between two states
 def linear_distance(node1, node2):
     if node1 == node2:
@@ -99,3 +102,15 @@ def heuristic(current, goal):
     (x1, y1) = current
     (x2, y2) = goal
     return math.sqrt(math.pow(abs(x2-x1), 2) + math.pow(abs(y2-y1), 2))
+
+
+# Returns a random number according to the given list's probability
+def random_pick(val_list):
+    index_list = [0,1,2,3]
+    x = random.uniform(0, 1)
+    cumulative_probability = 0.0
+    for item, item_probability in zip(index_list, val_list):
+        cumulative_probability += item_probability
+        if x < cumulative_probability:
+            break
+    return item
