@@ -1,8 +1,9 @@
-___author = "Abdul Rubaye"
 from random import *
 import random
-import time
 import Cell
+
+___author = "Abdul Rubaye"
+
 
 class Algorithm:
     (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
@@ -17,20 +18,16 @@ class Algorithm:
         self.gridMatrix = map_file
         self.qMatrix = self.initialize_q_matrix()
 
-
     def initialize_q_matrix(self):
         q = [[[0 for _ in range(len(self.actions))] for _ in range(self.grid_y)] for _ in range(self.grid_x)]
         for i in range (self.grid_x):
             for j in range (self.grid_y):
                     if self.is_clear((i,j)):
-                        for k in range (len(self.actions)):
+                        for k in range(len(self.actions)):
                             q[i][j][k] = 0.0
                     else:
                         q[i][j] = None
         return q
-
-
-
 
     def stochastic_probabilities(self, state):
         index_of_max_q = self.max_q_index(state)
@@ -54,68 +51,46 @@ class Algorithm:
                 break
         return item
 
-
     def e_greedy_policy(self, goal):
         self.goal = goal
-
-
         for i in range (10):
             current_state = self.initial_state()
 
             while current_state != self.goal:
                 actions = self.find_possible_actions(current_state)
                 rand_action = self.random_pick(self.stochastic_probabilities(current_state))
-                # rand_action = self.stochastic_random(current_state)
-                print current_state
-                print rand_action
-                next_state = ()
                 next_state = actions[rand_action]
-                print ('n')
-                print next_state
-                #policyType = [softmax = 0, e-greedy = 1]
-                self.update_q_value(current_state, rand_action, next_state, 1)
-                print ('p')
 
+                # policyType = [softmax = 0, e-greedy = 1]
+                self.update_q_value(current_state, rand_action, next_state, 1)
                 if next_state is not None:
                     current_state = next_state
-
         return self.qMatrix
-
 
     def soft_max_policy(self, goal):
         self.goal = goal
 
         # i number of episodes per execution
-        for i in range(100):
+        for i in range(10):
             current_state = self.initial_state()
             tries_to_terminate_episode = 0
+            # the episode will be terminated after the goal state is reached or a 100 episodes occur
             while current_state != self.goal and tries_to_terminate_episode <= 100:
                 actions = self.find_possible_actions(current_state)
                 # deterministic mode: to select an action with probability 1
                 rand_action = randint(0,3)
                 next_state = actions[rand_action]
-                #policyType = [softmax = 0, e-greedy = 1]
+                # policyType = [softmax = 0, e-greedy = 1]
                 self.update_q_value(current_state, rand_action, next_state, 0)
                 # print '{}->{}'.format(current_state,next_state)
                 if next_state is not None:
                     current_state = next_state
                 tries_to_terminate_episode += 1
-            # self.print_q()
-            # print (time.time())
         return self.qMatrix
-
 
     def update_q_value(self, current, action, next_state, policy_type):
         (x,y) = current
-        #
-        # self.qMatrix[x][y][action] *= 1-self.alpha
-        #
-        # self.qMatrix[x][y][action] += self.calculate_q(current, next_state, policy_type)
-
         self.qMatrix[x][y][action] += self.alpha*(self.calculate_q(current, next_state, policy_type) - self.qMatrix[x][y][action])
-
-        print self.qMatrix[x][y][action]
-
 
     def calculate_q(self, current, next_state, policy_type):
         was_none = False
@@ -140,30 +115,6 @@ class Algorithm:
         else:
 
             q_a = self.reward(next_state, was_none)+self.gamma*new_max
-
-        # if next_state is None:
-        #     max = 0
-        #     new_max = 0
-        # else:
-        #     (x,y) = next_state
-        #
-        #     index = self.max_q_index(next_state)
-        #     max = self.qMatrix[x][y][index]
-        #
-        #     probabilities = self.stochastic_probabilities(next_state)
-        #     new_max = 0
-        #     for i in range(4):
-        #         if probabilities[i] != 0.6:
-        #             new_max += (self.qMatrix[x][y][i] * 0.1)
-        #         else:
-        #             new_max += (self.qMatrix[x][y][i] * 0.6)
-        #
-        # if policy_type == 0:
-        #     q_a = self.reward(next_state)+self.gamma*max
-        # else:
-        #
-        #     q_a = self.reward(next_state)+self.gamma*new_max
-
 
         return q_a
 
@@ -216,7 +167,6 @@ class Algorithm:
                     print '{} => t=({}), b=({}), r=({}), l=({})'.format(state, self.q(state,0),self.q(state,1),self.q(state,2),self.q(state,3))
 
         print ('-'*50)
-
 
     def q(self,state,a):
         (x,y) = state

@@ -1,6 +1,3 @@
-import random
-
-import numpy
 from tkinter import *
 import ttk
 from tkFileDialog import askopenfilename
