@@ -41,7 +41,7 @@ class MainApp:
         Label(self.rightFrame, text="    ", fg='white').grid(row=0, column=2, sticky=W)
         Label(self.rightFrame, text="    ", fg='white').grid(row=0, column=0, sticky=E)
 
-        self.grid = Canvas(self.leftFrame, width=800, heigh=800)
+        self.grid = Canvas(self.leftFrame, width=640, heigh=640)
 
         self.gridMatrix = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
         self.qMatrix = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
@@ -163,8 +163,8 @@ class MainApp:
 
     # Adds the text for A_star path planning
     def insert_text_a_star(self, x, y, routeNode):
-        cost = "d="+ str(routeNode.distance)
         fscore = "f="+str(round(routeNode.f_score,1))
+        cost = "g="+ str(routeNode.distance)
         heuristic = "h="+str(round(routeNode.heuristic,1))
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.25)*self.cellWidth), text=fscore, fill='black')
         self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.5)*self.cellWidth), text=cost, fill='black')

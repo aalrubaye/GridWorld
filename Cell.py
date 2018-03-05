@@ -18,6 +18,6 @@ class Color(Enum):
 
 class World(Enum):
     CELL_WIDTH = 80
-    X=7
-    Y=7
+    X=8
+    Y=8
 
