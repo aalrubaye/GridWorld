@@ -7,6 +7,7 @@ import queue
 import Cell
 import Qlearning
 import Astar
+import Utility
 
 
 
@@ -65,7 +66,6 @@ class MainApp:
         self.alpha_text_var = StringVar()
         self.gamma_text_var = StringVar()
 
-
     # The world grid matrix initializer
     def initialize_grid_matrix(self):
         for i in range(self.grid_x):
@@ -82,84 +82,27 @@ class MainApp:
         self.is_goal_created = False
         self.qMatrix = None
 
-    # Returns a cell color based on the value from the map matrix
-    def cell_color(self, value):
-        switcher = {
-            0: Cell.Color.CLEAR,
-            1: Cell.Color.OBSTACLE,
-            2: Cell.Color.START,
-            3: Cell.Color.GOAL
-        }
-        return switcher.get(value, Cell.Color.CLEAR)
-
-    def poly_color(self, val):
-        if val <= 0:
-            return "gray72"
-        if -1 < val <= 25:
-            return "blanched almond"
-        if 25 < val <=50:
-            return "bisque"
-        if 50 < val <=75:
-            return "navajo white"
-        else:
-            return "sandy brown"
-
-    def ql_color(self, top,bottom,right,left):
-        sum = top+bottom+right+left
-        if sum <= 30:
-            return "#fff8eb"
-        if 30 < sum <= 60:
-            return "#fff1de"
-        if 60 < sum <=90:
-            return "#ffe6c7"
-        if 90 < sum <=120:
-            return "#ffe6c7"
-        if 120 <sum<=150:
-            return "#ffd19a"
-        if 150<sum<=180:
-            return "#ffc887"
-        if 180<sum<=210:
-            return "#ffbe72"
-        if 210<sum<=240:
-            return "#ffb660"
-        if 240<sum<=270:
-            return "#ffae52"
-        else:
-            return "#ffa53d"
-
-    def heat_map(self, x, y, q_matrix):
-        top = round(q_matrix[0],1)
-        bottom = round(q_matrix[1],1)
-        right = round(q_matrix[2],1)
-        left = round(q_matrix[3],1)
-
+    # Renders the heatmap after each episode
+    def heat_map(self, x, y, cell_q_values):
+        q_vals = Utility.q_values(cell_q_values)
         cellWidth = self.cellWidth
-
         if self.heatmap_radio_btn_val.get() == 2:
-            self.grid.create_rectangle(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth, fill=self.ql_color(top,bottom,right,left), width=1)
+            self.grid.create_rectangle(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth, fill=Utility.ql_color(q_vals), width=1)
         else:
-            self.grid.create_polygon([x*cellWidth,y*cellWidth,x*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=self.poly_color(left), width=1, outline='gray')
-            self.grid.create_polygon([x*cellWidth,y*cellWidth,(x+1)*cellWidth,y*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=self.poly_color(top), width=1, outline='gray')
-            self.grid.create_polygon([x*cellWidth,(y+1)*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,(y+1)*cellWidth], fill=self.poly_color(bottom), width=1, outline='gray')
-            self.grid.create_polygon([(x+1)*cellWidth,y*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,(x+1)*cellWidth,y*cellWidth], fill=self.poly_color(right), width=1, outline='gray')
+            self.grid.create_polygon([x*cellWidth,y*cellWidth,x*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=Utility.poly_color(q_vals[3]), width=1, outline='gray')
+            self.grid.create_polygon([x*cellWidth,y*cellWidth,(x+1)*cellWidth,y*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,y*cellWidth], fill=Utility.poly_color(q_vals[0]), width=1, outline='gray')
+            self.grid.create_polygon([x*cellWidth,(y+1)*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,x*cellWidth,(y+1)*cellWidth], fill=Utility.poly_color(q_vals[1]), width=1, outline='gray')
+            self.grid.create_polygon([(x+1)*cellWidth,y*cellWidth,(x+1)*cellWidth,(y+1)*cellWidth,(x+0.5)*cellWidth,(y+0.5)*cellWidth,(x+1)*cellWidth,y*cellWidth], fill=Utility.poly_color(q_vals[2]), width=1, outline='gray')
 
-        self.insert_text_ql(x,y,q_matrix)
+        self.insert_text_ql(x,y,cell_q_values)
 
     # Adds the text for QL path planning
-    def insert_text_ql(self, x, y, q_matrix):
-
-        top = round(q_matrix[0],1)
-        bottom = round(q_matrix[1],1)
-        right = round(q_matrix[2],1)
-        left = round(q_matrix[3],1)
-
-        # qlc = self.ql_color(top,bottom,right,left)
-        # self.grid.create_rectangle(x*self.cellWidth, y*self.cellWidth, (x+1)*self.cellWidth, (y+1)*self.cellWidth, fill=qlc, width=1)
-
-        self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.25)*self.cellWidth), text=top, fill='black')
-        self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.75)*self.cellWidth), text=bottom, fill='black')
-        self.grid.create_text(((x+0.75)*self.cellWidth, (y+0.5)*self.cellWidth), text=right, fill='black')
-        self.grid.create_text(((x+0.25)*self.cellWidth, (y+0.5)*self.cellWidth), text=left, fill='black')
+    def insert_text_ql(self, x, y, cell_q_values):
+        q_vals = Utility.q_values(cell_q_values)
+        self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.25)*self.cellWidth), text=q_vals[0], fill='black')
+        self.grid.create_text(((x+0.5)*self.cellWidth, (y+0.75)*self.cellWidth), text=q_vals[1], fill='black')
+        self.grid.create_text(((x+0.75)*self.cellWidth, (y+0.5)*self.cellWidth), text=q_vals[2], fill='black')
+        self.grid.create_text(((x+0.25)*self.cellWidth, (y+0.5)*self.cellWidth), text=q_vals[3], fill='black')
 
     # Adds the text for A_star path planning
     def insert_text_a_star(self, x, y, routeNode):
@@ -174,11 +117,11 @@ class MainApp:
     def create_grid(self):
         for i in range(self.grid_x):
             for j in range(self.grid_y):
-                color = self.cell_color(self.gridMatrix[j][i])
+                color = Utility.cell_color(self.gridMatrix[j][i])
                 self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth, fill=color, width=1)
         self.grid.pack(side=LEFT)
 
-    # opens a map matrix from a file and renders it to the grid
+    # Opens a map matrix from a file and renders it to the grid
     def open_file(self):
         map_file = askopenfilename(title="Select map file")
         if len(map_file) == 0:
@@ -192,7 +135,7 @@ class MainApp:
         self.pause = False
         self.path = 0
 
-
+    # Returns an specific color for each one of the paths
     def get_path_color(self):
         switcher = {
             0: ("#ff8586","#ce9ec9"),
@@ -299,8 +242,6 @@ class MainApp:
         self.gamma_entry.insert(0, "0.8")
         self.gamma_entry.grid(row=self.get_elements_order(), column=1, sticky=W)
 
-
-
     # Pauses the QL learning algorithm
     def pause_q_learning(self):
         self.pause = True
@@ -355,7 +296,7 @@ class MainApp:
         while current != self.goal:
             max_q_index = self.qlearner.max_q_index(current)
             while True:
-                next_state = self.next_state_on_path(current, max_q_index)
+                next_state = Utility.next_state_on_path(current, max_q_index)
                 (x,y) = next_state
                 if self.gridMatrix[x][y] != Cell.Type.OBSTACLE:
                     break
@@ -370,17 +311,6 @@ class MainApp:
             else:
                 self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill=path_color, width=1)
                 self.insert_text_ql(j,i,self.qMatrix[i][j])
-
-    # Find the states on the path for QL Algorithm
-    def next_state_on_path(self, state, index):
-        (x,y) = state
-        switcher = {
-            0: (x-1, y),
-            1: (x+1, y),
-            2: (x, y+1),
-            3: (x, y-1)
-        }
-        return switcher.get(index, (x,y))
 
     # the main function of the A* algorithm
     def a_star(self):

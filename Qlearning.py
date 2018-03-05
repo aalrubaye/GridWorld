@@ -53,7 +53,7 @@ class Algorithm:
 
     def e_greedy_policy(self, goal, parameters):
         self.goal = goal
-        for i in range (10):
+        for i in range(10):
             current_state = self.initial_state()
 
             while current_state != self.goal:
