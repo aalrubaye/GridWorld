@@ -11,13 +11,12 @@ class Algorithm:
     qMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     actions = ['up','down','right','left']
     goal = ()
-    gamma = 0.8
-    alpha = 1
 
     def __init__(self, map_file):
         self.gridMatrix = map_file
         self.qMatrix = self.initialize_q_matrix()
 
+    # Initializes the q matrix that contains the q values for all the cells in grid world
     def initialize_q_matrix(self):
         q = [[[0 for _ in range(len(self.actions))] for _ in range(self.grid_y)] for _ in range(self.grid_x)]
         for i in range (self.grid_x):
@@ -29,6 +28,7 @@ class Algorithm:
                         q[i][j] = None
         return q
 
+    # returns the action selection probabilities of a cell's q values
     def stochastic_probabilities(self, state):
         index_of_max_q = self.max_q_index(state)
         probabilities = []
@@ -41,6 +41,7 @@ class Algorithm:
                 probabilities.append(0.1)
         return probabilities
 
+    # Picks a random action according to the stochastic probabilities
     def random_pick(self, val_list):
         index_list = [0,1,2,3]
         x = random.uniform(0, 1)
@@ -51,6 +52,7 @@ class Algorithm:
                 break
         return item
 
+    # The main function og the q learning based on the e greedy selection policy
     def e_greedy_policy(self, goal, parameters):
         self.goal = goal
         for i in range(10):
@@ -67,6 +69,7 @@ class Algorithm:
                     current_state = next_state
         return self.qMatrix
 
+    # The main function of the q learning based on the softmax selection policy
     def soft_max_policy(self, goal, parameters):
         self.goal = goal
 
@@ -88,10 +91,12 @@ class Algorithm:
                 tries_to_terminate_episode += 1
         return self.qMatrix
 
+    # Updates the q(s,a) based on the q learning function
     def update_q_value(self, current, action, next_state, (alpha, gamma), policy_type):
         (x,y) = current
         self.qMatrix[x][y][action] += alpha*(self.calculate_q(current, next_state, gamma, policy_type) - self.qMatrix[x][y][action])
 
+    # Calculates the q(s,a) based on the q learning function
     def calculate_q(self, current, next_state, gamma, policy_type):
         was_none = False
         if next_state is None:
@@ -133,6 +138,7 @@ class Algorithm:
                 index = i
         return index
 
+    # Returns a random initial state for an episode
     def initial_state(self):
 
         while True:
@@ -140,13 +146,11 @@ class Algorithm:
             rand_y = randint(0, self.grid_y-1)
             if self.is_clear((rand_x, rand_y)) is True:
                 break
-        # while self.is_clear((rand_x, rand_y)) is False:
-        #     rand_x = randint(0, self.grid_x-1)
-        #     rand_y = randint(0, self.grid_y-1)
 
         random_state = (rand_x, rand_y)
         return random_state
 
+    # Checks if the cell is clear
     def is_clear(self, state):
         if state is None:
             return False
@@ -157,6 +161,7 @@ class Algorithm:
         else:
             return True
 
+    # The print function of the q values
     def print_q(self):
         print ('-'*50)
         for i in range (self.grid_x):
@@ -167,6 +172,7 @@ class Algorithm:
 
         print ('-'*50)
 
+    # Returns the q value of (S,a)
     def q(self,state,a):
         (x,y) = state
         switcher = {
@@ -177,6 +183,7 @@ class Algorithm:
         }
         return switcher.get(a, None)
 
+    # The reward function
     def reward(self,state, was_none):
         if was_none is True:
             return -2
@@ -184,6 +191,7 @@ class Algorithm:
             return 100
         return -1
 
+    # Returns the direct neighbors of a cell
     def direct_neighbors(self, state):
         (x,y) = state
         top = (x-1, y) if (x-1) > -1 else None
@@ -193,6 +201,7 @@ class Algorithm:
 
         return [top,bottom,right,left]
 
+    # Finds the available actions of a cell
     def find_possible_actions(self, state):
         actions = []
         direct_neighbors = self.direct_neighbors(state)

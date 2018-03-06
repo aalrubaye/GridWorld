@@ -16,8 +16,6 @@ ___author = "Abdul Rubaye"
 
 # The main class that includes the GUI interface
 class MainApp:
-    global root, rightFrame, leftFrame, cell_radio_btn_val, grid, gridMatrix, qMatrix, qlearner
-
     cellWidth = Cell.World.CELL_WIDTH
     is_start_created = False
     is_goal_created = False
@@ -58,7 +56,6 @@ class MainApp:
         # Radio Buttons for heat map selection
         self.heatmap_radio_btn_val = IntVar()
         self.heatmap_radio_btn_val.set(2)
-
         self.set_new_grid()
         self.create_left_side_elements()
         self.grid.bind('<Button-2>', self.reset_start_goal_cell)
@@ -178,8 +175,7 @@ class MainApp:
                     self.start = (j,i)
                     self.is_start_created = True
                 elif (self.cell_radio_btn_val.get() == 3) & (self.is_goal_created is False):
-                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                                          fill=Cell.Color.GOAL, width=1)
+                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,fill=Cell.Color.GOAL, width=1)
                     self.grid.create_text(((i+0.5)*self.cellWidth, (j+0.5)*self.cellWidth), text="Goal", fill='black')
                     self.gridMatrix[j][i] = Cell.Type.GOAL
                     self.goal = (j,i)
@@ -192,15 +188,12 @@ class MainApp:
         if (i < self.grid_x) & (j < self.grid_y):
             if self.gridMatrix[j][i] == Cell.Type.START:
                 if self.cell_radio_btn_val.get() == 2:
-                    # self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                    #                       fill=Cell.Color.CLEAR, width=1)
                     self.gridMatrix[j][i] = Cell.Type.CLEAR
                     self.start = ()
                     self.is_start_created = False
             elif self.gridMatrix[j][i] == Cell.Type.GOAL:
                 if self.cell_radio_btn_val.get() == 3:
-                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                                          fill=Cell.Color.CLEAR, width=1)
+                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,fill=Cell.Color.CLEAR, width=1)
                     self.gridMatrix[j][i] = Cell.Type.CLEAR
                     self.goal = ()
                     self.is_goal_created = False
@@ -341,6 +334,7 @@ class MainApp:
                 tkMessageBox.showwarning('No Route Found', 'There is no possible route to the goal! You still can re select either one of the start or goal cell.')
         else:
             tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
+
     # The main function that runs the QLearner using threading
     # Spawn a new thread for running long loops in background
     def run_through_threading(self):
@@ -359,6 +353,7 @@ class MainApp:
                     self.root.after(1200, self.run_through_threading)
         except queue.Empty:
             self.root.after(1000, self.listen_for_result)
+
 
 # MAIN
 if __name__ == "__main__":
