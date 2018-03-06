@@ -1,5 +1,7 @@
 from enum import Enum
 
+___author = "Abdul Rubaye"
+
 
 class Type(Enum):
     CLEAR = 0

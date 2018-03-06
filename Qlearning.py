@@ -5,6 +5,7 @@ import Cell
 ___author = "Abdul Rubaye"
 
 
+# The implementation of QLearning algorithm
 class Algorithm:
     (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
@@ -55,7 +56,7 @@ class Algorithm:
     # The main function og the q learning based on the e greedy selection policy
     def e_greedy_policy(self, goal, parameters):
         self.goal = goal
-        for i in range(10):
+        for i in range(20):
             current_state = self.initial_state()
 
             while current_state != self.goal:
@@ -67,6 +68,8 @@ class Algorithm:
                 self.update_q_value(current_state, rand_action, next_state, parameters, 1)
                 if next_state is not None:
                     current_state = next_state
+            self.print_q()
+
         return self.qMatrix
 
     # The main function of the q learning based on the softmax selection policy
@@ -80,12 +83,11 @@ class Algorithm:
             # the episode will be terminated after the goal state is reached or a 100 episodes occur
             while current_state != self.goal and tries_to_terminate_episode <= 100:
                 actions = self.find_possible_actions(current_state)
-                # deterministic mode: to select an action with probability 1
-                rand_action = randint(0,3)
+                rand_action = randint(0, 3)
                 next_state = actions[rand_action]
+
                 # policyType = [softmax = 0, e-greedy = 1]
                 self.update_q_value(current_state, rand_action, next_state, parameters, 0)
-                # print '{}->{}'.format(current_state,next_state)
                 if next_state is not None:
                     current_state = next_state
                 tries_to_terminate_episode += 1
@@ -163,7 +165,6 @@ class Algorithm:
 
     # The print function of the q values
     def print_q(self):
-        print ('-'*50)
         for i in range (self.grid_x):
             for j in range (self.grid_y):
                 state = (i,j)
@@ -171,7 +172,7 @@ class Algorithm:
                     print '{} => t=({}), b=({}), r=({}), l=({})'.format(state, self.q(state,0),self.q(state,1),self.q(state,2),self.q(state,3))
 
         print ('-'*50)
-
+        
     # Returns the q value of (S,a)
     def q(self,state,a):
         (x,y) = state

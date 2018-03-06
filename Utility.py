@@ -1,6 +1,11 @@
+import math
+
 import Cell
 
+___author = "Abdul Rubaye"
 
+
+# Returns a cell's color of a (S,a) based to the gained reward
 def poly_color(val):
     if val <= 0:
         return "gray72"
@@ -14,6 +19,7 @@ def poly_color(val):
         return "sandy brown"
 
 
+# Returns cells color based on the total gain reward
 def ql_color(q_vals):
     sum = 0
     for i in range(4):
@@ -70,3 +76,41 @@ def cell_color(value):
         3: Cell.Color.GOAL
     }
     return switcher.get(value, Cell.Color.CLEAR)
+
+
+# Finds the direct neighbors of a cell
+def direct_neighbors(node):
+    (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
+    (x,y) = node
+    top = (x-1, y) if (x-1) > -1 else None
+    bottom = (x+1, y) if (x+1) < grid_x else None
+    left = (x, y-1) if (y-1) > -1 else None
+    right = (x, y+1) if (y+1) < grid_y else None
+
+    return [top,bottom,left,right]
+
+
+# Calculates the distance between two nodes
+def linear_distance(node1, node2):
+    if node1 == node2:
+        return 0
+    (x1,y1) = node1
+    (x2,y2) = node2
+
+    dx = abs(x1-x2)
+    dy = abs(y1-y2)
+
+    neighbor_cells = True if (dx == 1) or (dy == 1) else False
+
+    if ((y1 == y2) or (x1 == x2)) and neighbor_cells:
+        return 1
+    else:
+        return 2
+
+
+# Calculates h(n) based on the Euclidean formula
+def heuristic(current, goal):
+    (x1, y1) = current
+    (x2, y2) = goal
+
+    return math.sqrt(math.pow(abs(x2-x1), 2) + math.pow(abs(y2-y1), 2))

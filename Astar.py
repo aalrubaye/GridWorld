@@ -1,15 +1,19 @@
-___author = "Abdul Rubaye"
+import Utility
 import math
 import RouteNode
 import Cell
 
+___author = "Abdul Rubaye"
+
+
+# The implementation of A* algorithm
 class Algorithm:
     (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
     start = ()
     goal = ()
-    open_list=[]
-    close_list=[]
+    open_list = []
+    close_list = []
     route_nodes = []
 
     def __init__(self, map_file, st, gl):
@@ -20,43 +24,33 @@ class Algorithm:
         self.goal = gl
         self.route_nodes = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
 
-
-    def direct_neighbors(self, node):
-        (x,y) = node
-        top = (x-1, y) if (x-1) > -1 else None
-        bottom = (x+1, y) if (x+1) < self.grid_x else None
-        left = (x, y-1) if (y-1) > -1 else None
-        right = (x, y+1) if (y+1) < self.grid_y else None
-
-        return [top,bottom,left,right]
-
-
+    # Returns a list of all the valid neighbors of a cell
     def find_neighbors(self, node):
         neighbors_list = []
-        (x,y) = node
+        (x, y) = node
 
-        direct_neighbors = self.direct_neighbors(node)
+        direct_neighbors = Utility.direct_neighbors(node)
 
-        top_right = (x-1,y+1) if ((x-1) > -1) and ((y+1) < self.grid_y) else None
+        top_right = (x-1, y+1) if ((x-1) > -1) and ((y+1) < self.grid_y) else None
         bottom_right = (x+1, y+1) if ((x+1) < self.grid_x) and ((y+1) < self.grid_y) else None
-        top_left = (x-1,y-1) if ((x-1) > -1) and ((y-1) > -1) else None
+        top_left = (x-1, y-1) if ((x-1) > -1) and ((y-1) > -1) else None
         bottom_left = (x+1, y-1) if ((x+1) < self.grid_x) and ((y-1) > -1) else None
 
         indirect_neighbors = [top_left, top_right, bottom_left, bottom_right]
 
         # adding those direct neighbors of node that are not obstacles and not in OL
-        for i in range (4):
+        for i in range(4):
             if self.is_new_valid_neighbor(direct_neighbors[i]):
                 neighbors_list.append(direct_neighbors[i])
 
         # adding those indirect neighbors of node that are not blocked or obstacles
         k = 0
         for i in range(2):
-            for j in range(2,4):
+            for j in range(2, 4):
                 if self.is_clear(direct_neighbors[i]) or self.is_clear(direct_neighbors[j]):
                     if self.is_new_valid_neighbor(indirect_neighbors[k]):
                         neighbors_list.append(indirect_neighbors[k])
-                k +=1
+                k += 1
 
         return neighbors_list
 
@@ -68,30 +62,30 @@ class Algorithm:
         else:
             return False
 
-    #todo switcher
+    # Checks if a specific cell is clear
     def is_clear(self, node):
         if node is None:
             return False
-        (x,y) = node
+        (x, y) = node
         val = self.gridMatrix[x][y]
         if val == 1:
             return False
         else:
             return True
 
-
+    # Add those states to the open list that were not be there before
     def add_to_open_list(self, neighbor_list, parent_node):
 
         for i in range(len(neighbor_list)):
             if neighbor_list[i] not in self.close_list:
                 if neighbor_list[i] not in self.open_list:
                     self.open_list.append(neighbor_list[i])
-                    routeNode = RouteNode.New(parent_node)
-                    routeNode.distance = self.cost(parent_node) + self.linear_distance(parent_node, neighbor_list[i])
-                    (x,y) = neighbor_list[i]
-                    self.route_nodes[x][y] = routeNode
+                    route_node = RouteNode.New(parent_node)
+                    route_node.distance = self.cost(parent_node) + Utility.linear_distance(parent_node, neighbor_list[i])
+                    (x, y) = neighbor_list[i]
+                    self.route_nodes[x][y] = route_node
                     self.route_nodes[x][y].f_score = self.f_score(neighbor_list[i])
-                    self.route_nodes[x][y].heuristic = self.heuristic(neighbor_list[i])
+                    self.route_nodes[x][y].heuristic = Utility.heuristic(neighbor_list[i], self.goal)
 
     # The main function of the short path search
     def search(self):
@@ -108,13 +102,13 @@ class Algorithm:
             self.add_to_open_list(neighbors, current)
             return self.search()
 
-
+    # Finds the route to goal
     def find_route(self):
 
         current = self.goal
 
         route = []
-        neighbors = self.direct_neighbors(current)
+        neighbors = Utility.direct_neighbors(current)
 
         while self.start not in neighbors:
             sortable = []
@@ -128,20 +122,22 @@ class Algorithm:
             (x_min,y_min) = sortable[0]
 
             for i in range (1, len(sortable)):
-                (x,y) = sortable[i]
+                (x, y) = sortable[i]
                 if self.route_nodes[x][y].distance < self.route_nodes[x_min][y_min].distance:
                     min_cell = sortable[i]
-                    (x_min,y_min) = sortable[i]
+                    (x_min, y_min) = sortable[i]
             route.append(min_cell)
-            neighbors = self.direct_neighbors(min_cell)
+            neighbors = Utility.direct_neighbors(min_cell)
         route.append(self.start)
+
         return route
 
-    # Calculates h(n)
-    def heuristic(self, current):
-        (x1, y1) = current
-        (x2, y2) = self.goal
-        return math.sqrt(math.pow(abs(x2-x1), 2) + math.pow(abs(y2-y1), 2))
+    # # Calculates h(n) based on the Euclidean formula
+    # def heuristic(self, current):
+    #     (x1, y1) = current
+    #     (x2, y2) = self.goal
+    #
+    #     return math.sqrt(math.pow(abs(x2-x1), 2) + math.pow(abs(y2-y1), 2))
 
     # Calculates g(n)
     def cost(self, node):
@@ -151,25 +147,9 @@ class Algorithm:
         else:
             return self.route_nodes[x][y].distance
 
-    def linear_distance(self, node1, node2):
-        if node1 == node2:
-            return 0
-        (x1,y1) = node1
-        (x2,y2) = node2
-
-        dx = abs(x1-x2)
-        dy = abs(y1-y2)
-
-        neighbor_cells = True if (dx == 1) or (dy==1) else False
-
-        if ((y1 == y2) or (x1 == x2)) and neighbor_cells:
-            return 1
-        else:
-            return 2
-
     # Calculates f(n)
     def f_score(self, node):
-        return self.cost(node) + self.heuristic(node)
+        return self.cost(node) + Utility.heuristic(node, self.goal)
 
     # Returns the node with shortest estimated distance
     def fetch_from_open_list(self):
