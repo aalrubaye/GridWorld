@@ -172,7 +172,7 @@ class Algorithm:
                     print '{} => t=({}), b=({}), r=({}), l=({})'.format(state, self.q(state,0),self.q(state,1),self.q(state,2),self.q(state,3))
 
         print ('-'*50)
-        
+
     # Returns the q value of (S,a)
     def q(self,state,a):
         (x,y) = state

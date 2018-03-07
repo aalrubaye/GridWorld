@@ -1,5 +1,4 @@
 import Utility
-import math
 import RouteNode
 import Cell
 
@@ -22,7 +21,7 @@ class Algorithm:
         self.close_list = []
         self.start = st
         self.goal = gl
-        self.route_nodes = [[0 for row in range(self.grid_y)] for col in range(self.grid_x)]
+        self.route_nodes = [[0 for _ in range(self.grid_y)] for _ in range(self.grid_x)]
 
     # Returns a list of all the valid neighbors of a cell
     def find_neighbors(self, node):
@@ -95,12 +94,12 @@ class Algorithm:
         if current == self.goal:
             path = self.find_route()
             return (self.route_nodes, path)
-        else:
-            # Find the neighbors of the current node
-            neighbors = self.find_neighbors(current)
-            # Add the neighbors of the current node to the OL if not there yet
-            self.add_to_open_list(neighbors, current)
-            return self.search()
+
+        # Find the neighbors of the current node
+        neighbors = self.find_neighbors(current)
+        # Add the neighbors of the current node to the OL if not there yet
+        self.add_to_open_list(neighbors, current)
+        return self.search()
 
     # Finds the route to goal
     def find_route(self):
@@ -121,7 +120,7 @@ class Algorithm:
             min_cell = sortable[0]
             (x_min,y_min) = sortable[0]
 
-            for i in range (1, len(sortable)):
+            for i in range(1, len(sortable)):
                 (x, y) = sortable[i]
                 if self.route_nodes[x][y].distance < self.route_nodes[x_min][y_min].distance:
                     min_cell = sortable[i]
@@ -131,13 +130,6 @@ class Algorithm:
         route.append(self.start)
 
         return route
-
-    # # Calculates h(n) based on the Euclidean formula
-    # def heuristic(self, current):
-    #     (x1, y1) = current
-    #     (x2, y2) = self.goal
-    #
-    #     return math.sqrt(math.pow(abs(x2-x1), 2) + math.pow(abs(y2-y1), 2))
 
     # Calculates g(n)
     def cost(self, node):

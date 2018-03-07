@@ -1,7 +1,7 @@
 ___author = "Abdul Rubaye"
 
 class New:
-    parent_node=()
+    parent_node = ()
     f_score = 0
     distance = 0
     heuristic = 0

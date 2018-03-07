@@ -29,7 +29,7 @@ class MainApp:
 
     def __init__(self, root):
         self.root = root
-        self.root.title("GridWorld HomeWork")
+        self.root.title("My GridWorld")
         self.root.resizable(width=FALSE, height=FALSE)
         self.rightFrame = Frame(self.root)
         self.rightFrame.pack(side=RIGHT, fill=Y)
@@ -326,8 +326,9 @@ class MainApp:
                                 self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=path_color, width=1)
                             else:
                                 self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.VISITED, width=1)
+                            
                             self.insert_text_a_star(j,i,evaluated_nodes[i][j])
-                self.grid.create_text(((y_start+0.5)*cellWidth, (x_start+0.5)*cellWidth), text='Start', fill='black')
+                # self.grid.create_text(((y_start+0.5)*cellWidth, (x_start+0.5)*cellWidth), text='Start', fill='black')
             else:
                 tkMessageBox.showwarning('No Route Found', 'There is no possible route to the goal! You still can re select either one of the start or goal cell.')
         else:
