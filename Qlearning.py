@@ -56,7 +56,7 @@ class Algorithm:
     # The main function og the q learning based on the e greedy selection policy
     def e_greedy_policy(self, goal, parameters):
         self.goal = goal
-        for i in range(20):
+        for i in range(50):
             current_state = self.initial_state()
 
             while current_state != self.goal:
@@ -77,7 +77,7 @@ class Algorithm:
         self.goal = goal
 
         # i number of episodes per execution
-        for i in range(2):
+        for i in range(5):
             current_state = self.initial_state()
             tries_to_terminate_episode = 0
             # the episode will be terminated after the goal state is reached or a 100 episodes occur
@@ -91,6 +91,7 @@ class Algorithm:
                 if next_state is not None:
                     current_state = next_state
                 tries_to_terminate_episode += 1
+                self.print_q()
         return self.qMatrix
 
     # Updates the q(s,a) based on the q learning function

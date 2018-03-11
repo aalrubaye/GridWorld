@@ -8,6 +8,8 @@ import Cell
 import Qlearning
 import Astar
 import Utility
+import numpy
+import pprint
 
 ___author = "Abdul Rubaye"
 
@@ -308,15 +310,16 @@ class MainApp:
         if (self.start != ()) and (self.goal != ()):
             astar = Astar.Algorithm(self.gridMatrix, self.start, self.goal)
             (x,y) = self.goal
-            (x_start, y_start) = self.start
+            # (x_start, y_start) = self.start
             (evaluated_nodes, path) = astar.search()
 
             cellWidth = self.cellWidth
+            g_matrix = [[0 for _ in range(self.grid_y)] for _ in range(self.grid_x)]
 
             (path_color,start_color) = self.get_path_color()
             if evaluated_nodes:
-                for i in range (self.grid_x):
-                    for j in range (self.grid_y):
+                for i in range(self.grid_x):
+                    for j in range(self.grid_y):
                         if evaluated_nodes[i][j] != 0:
                             if (i,j) == (x,y):
                                 self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.GOAL, width=1)
@@ -326,13 +329,17 @@ class MainApp:
                                 self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=path_color, width=1)
                             else:
                                 self.grid.create_rectangle(j*cellWidth, i*cellWidth, (j+1)*cellWidth, (i+1)*cellWidth,fill=Cell.Color.VISITED, width=1)
-                            
-                            self.insert_text_a_star(j,i,evaluated_nodes[i][j])
-                # self.grid.create_text(((y_start+0.5)*cellWidth, (x_start+0.5)*cellWidth), text='Start', fill='black')
+
+                            self.insert_text_a_star(j, i, evaluated_nodes[i][j])
+
             else:
                 tkMessageBox.showwarning('No Route Found', 'There is no possible route to the goal! You still can re select either one of the start or goal cell.')
         else:
             tkMessageBox.showwarning('Required Values', 'Make sure you select the start and goal cells!')
+
+        print ('-'*100)
+        print('the path is = ', path)
+        print ('-'*100)
 
     # The main function that runs the QLearner using threading
     # Spawn a new thread for running long loops in background
