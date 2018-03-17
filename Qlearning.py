@@ -42,7 +42,7 @@ class Algorithm:
                 probabilities.append(0.1)
         return probabilities
 
-    # Picks a random action according to the stochastic probabilities
+    # Picks a random action based on stochastic probabilities
     def random_pick(self, val_list):
         index_list = [0,1,2,3]
         x = random.uniform(0, 1)

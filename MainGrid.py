@@ -143,7 +143,6 @@ class MainApp:
         self.path += 1
         return switcher.get(path, ("#ff8586","#ce9ec9"))
 
-        self.path += 1
 
     # Returns orders of the right side elements
     def get_elements_order(self):
