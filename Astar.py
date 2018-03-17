@@ -1,3 +1,4 @@
+import Utility
 import RouteNode
 import Cell
 import Utility
@@ -5,7 +6,7 @@ import Utility
 ___author = "Abdul Rubaye"
 
 
-# The main class for A-Star implementation
+# The implementation of A* algorithm
 class Algorithm:
     (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
@@ -23,16 +24,16 @@ class Algorithm:
         self.goal = gl
         self.route_nodes = [[0 for _ in range(self.grid_y)] for _ in range(self.grid_x)]
 
-    # Finds the neighbors of a state
+    # Returns a list of all the valid neighbors of a cell
     def find_neighbors(self, node):
         neighbors_list = []
-        (x,y) = node
+        (x, y) = node
 
-        direct_neighbors = Utility.direct_neighbors(node, self.grid_x, self.grid_y)
+        direct_neighbors = Utility.direct_neighbors(node)
 
-        top_right = (x-1,y+1) if ((x-1) > -1) and ((y+1) < self.grid_y) else None
+        top_right = (x-1, y+1) if ((x-1) > -1) and ((y+1) < self.grid_y) else None
         bottom_right = (x+1, y+1) if ((x+1) < self.grid_x) and ((y+1) < self.grid_y) else None
-        top_left = (x-1,y-1) if ((x-1) > -1) and ((y-1) > -1) else None
+        top_left = (x-1, y-1) if ((x-1) > -1) and ((y-1) > -1) else None
         bottom_left = (x+1, y-1) if ((x+1) < self.grid_x) and ((y-1) > -1) else None
 
         indirect_neighbors = [top_left, top_right, bottom_left, bottom_right]
@@ -45,7 +46,7 @@ class Algorithm:
         # adding those indirect neighbors of node that are not blocked or obstacles
         k = 0
         for i in range(2):
-            for j in range(2,4):
+            for j in range(2, 4):
                 if self.is_clear(direct_neighbors[i]) or self.is_clear(direct_neighbors[j]):
                     if self.is_new_valid_neighbor(indirect_neighbors[k]):
                         neighbors_list.append(indirect_neighbors[k])
@@ -61,28 +62,28 @@ class Algorithm:
         else:
             return False
 
-    # Checks a state if it's a clear one
+    # Checks if a specific cell is clear
     def is_clear(self, node):
         if node is None:
             return False
-        (x,y) = node
+        (x, y) = node
         val = self.gridMatrix[x][y]
         if val == 1:
             return False
         else:
             return True
 
-    # Add states to the open list
+    # Add those states to the open list that were not be there before
     def add_to_open_list(self, neighbor_list, parent_node):
 
         for i in range(len(neighbor_list)):
             if neighbor_list[i] not in self.close_list:
                 if neighbor_list[i] not in self.open_list:
                     self.open_list.append(neighbor_list[i])
-                    routeNode = RouteNode.New(parent_node)
-                    routeNode.distance = self.cost(parent_node) + Utility.linear_distance(parent_node, neighbor_list[i])
-                    (x,y) = neighbor_list[i]
-                    self.route_nodes[x][y] = routeNode
+                    route_node = RouteNode.New(parent_node)
+                    route_node.distance = self.cost(parent_node) + Utility.linear_distance(parent_node, neighbor_list[i])
+                    (x, y) = neighbor_list[i]
+                    self.route_nodes[x][y] = route_node
                     self.route_nodes[x][y].f_score = self.f_score(neighbor_list[i])
                     self.route_nodes[x][y].heuristic = Utility.heuristic(neighbor_list[i], self.goal)
 
@@ -94,20 +95,20 @@ class Algorithm:
         if current == self.goal:
             path = self.find_route()
             return (self.route_nodes, path)
-        else:
-            # Find the neighbors of the current node
-            neighbors = self.find_neighbors(current)
-            # Add the neighbors of the current node to the OL if not there yet
-            self.add_to_open_list(neighbors, current)
-            return self.search()
 
-    # Finds the route going backward from goal to start
+        # Find the neighbors of the current node
+        neighbors = self.find_neighbors(current)
+        # Add the neighbors of the current node to the OL if not there yet
+        self.add_to_open_list(neighbors, current)
+        return self.search()
+
+    # Finds the route to goal
     def find_route(self):
 
         current = self.goal
 
         route = []
-        neighbors = Utility.direct_neighbors(current, self.grid_x, self.grid_y)
+        neighbors = Utility.direct_neighbors(current)
 
         while self.start not in neighbors:
             sortable = []
@@ -120,14 +121,15 @@ class Algorithm:
             min_cell = sortable[0]
             (x_min,y_min) = sortable[0]
 
-            for i in range (1, len(sortable)):
-                (x,y) = sortable[i]
+            for i in range(1, len(sortable)):
+                (x, y) = sortable[i]
                 if self.route_nodes[x][y].distance < self.route_nodes[x_min][y_min].distance:
                     min_cell = sortable[i]
-                    (x_min,y_min) = sortable[i]
+                    (x_min, y_min) = sortable[i]
             route.append(min_cell)
-            neighbors = Utility.direct_neighbors(min_cell, self.grid_x, self.grid_y)
+            neighbors = Utility.direct_neighbors(min_cell)
         route.append(self.start)
+
         return route
 
     # Calculates g(n)

@@ -5,7 +5,7 @@ import Utility
 ___author = "Abdul Rubaye"
 
 
-# The main class for Q-Learning implementation
+# The implementation of QLearning algorithm
 class Algorithm:
     (grid_x, grid_y) = (Cell.World.X, Cell.World.Y)
     gridMatrix = [[0 for row in range(grid_y)] for col in range(grid_x)]
@@ -17,7 +17,7 @@ class Algorithm:
         self.gridMatrix = map_file
         self.qMatrix = self.initialize_q_matrix()
 
-    # Initializing the Q value matrix
+    # Initializes the q matrix that contains the q values for all the cells in grid world
     def initialize_q_matrix(self):
         q = [[[0 for _ in range(len(self.actions))] for _ in range(self.grid_y)] for _ in range(self.grid_x)]
         for i in range (self.grid_x):
@@ -29,7 +29,7 @@ class Algorithm:
                         q[i][j] = None
         return q
 
-    # Sets the probabilities of a state list according to max q value
+    # returns the action selection probabilities of a cell's q values
     def stochastic_probabilities(self, state):
         index_of_max_q = self.max_q_index(state)
         probabilities = []
@@ -42,7 +42,18 @@ class Algorithm:
                 probabilities.append(0.1)
         return probabilities
 
-    # The implementation of epsilon greedy selection policy
+    # Picks a random action based on stochastic probabilities
+    def random_pick(self, val_list):
+        index_list = [0,1,2,3]
+        x = random.uniform(0, 1)
+        cumulative_probability = 0.0
+        for item, item_probability in zip(index_list, val_list):
+            cumulative_probability += item_probability
+            if x < cumulative_probability:
+                break
+        return item
+
+    # The main function og the q learning based on the e greedy selection policy
     def e_greedy_policy(self, goal, parameters):
         self.goal = goal
         for i in range(50):
@@ -58,37 +69,38 @@ class Algorithm:
                 self.update_q_value(current_state, rand_action, next_state, parameters, 1)
                 if next_state is not None:
                     current_state = next_state
-                tries_to_terminate_episode += 1
+            self.print_q()
+
         return self.qMatrix
 
-    # The implementation of softmax selection policy
+    # The main function of the q learning based on the softmax selection policy
     def soft_max_policy(self, goal, parameters):
         self.goal = goal
 
         # i number of episodes per execution
-        for i in range(50):
+        for i in range(5):
             current_state = self.initial_state()
             tries_to_terminate_episode = 0
             # the episode will be terminated after the goal state is reached or a 100 episodes occur
             while current_state != self.goal and tries_to_terminate_episode <= 100:
                 actions = self.find_possible_actions(current_state)
-                # deterministic mode: to select an action with probability 1
-                rand_action = randint(0,3)
+                rand_action = randint(0, 3)
                 next_state = actions[rand_action]
+
                 # policyType = [softmax = 0, e-greedy = 1]
                 self.update_q_value(current_state, rand_action, next_state, parameters, 0)
-                # print '{}->{}'.format(current_state,next_state)
                 if next_state is not None:
                     current_state = next_state
                 tries_to_terminate_episode += 1
+                self.print_q()
         return self.qMatrix
 
-    # Updates the Q value of a specific (S,a)
+    # Updates the q(s,a) based on the q learning function
     def update_q_value(self, current, action, next_state, (alpha, gamma), policy_type):
         (x,y) = current
         self.qMatrix[x][y][action] += alpha*(self.calculate_q(current, next_state, gamma, policy_type) - self.qMatrix[x][y][action])
 
-    # Calculates the q value of a specific (S,a) for a policy
+    # Calculates the q(s,a) based on the q learning function
     def calculate_q(self, current, next_state, gamma, policy_type):
         was_none = False
         if next_state is None:
@@ -129,17 +141,18 @@ class Algorithm:
                 index = i
         return index
 
-    # Returns an random state that is used in the stochastic search
+    # Returns a random initial state for an episode
     def initial_state(self):
         while True:
             rand_x = randint(0, self.grid_x-1)
             rand_y = randint(0, self.grid_y-1)
             if self.is_clear((rand_x, rand_y)) is True:
                 break
+
         random_state = (rand_x, rand_y)
         return random_state
 
-    # Checks to see if a given state is clear
+    # Checks if the cell is clear
     def is_clear(self, state):
         if state is None:
             return False
@@ -150,9 +163,8 @@ class Algorithm:
         else:
             return True
 
-    # Prints the q values
+    # The print function of the q values
     def print_q(self):
-        print ('-'*50)
         for i in range (self.grid_x):
             for j in range (self.grid_y):
                 state = (i,j)
@@ -161,8 +173,8 @@ class Algorithm:
 
         print ('-'*50)
 
-    # Returns the q value of a (S,a)
-    def q(self, state, a):
+    # Returns the q value of (S,a)
+    def q(self,state,a):
         (x,y) = state
         switcher = {
             0: self.qMatrix[x][y][0],
@@ -172,10 +184,7 @@ class Algorithm:
         }
         return switcher.get(a, None)
 
-    # Returns the reward of an action
-    # to reach to goal = 100
-    # to reach an obstacle or a wall = -2
-    # to do any other action = -1
+    # The reward function
     def reward(self,state, was_none):
         if was_none is True:
             return -2
@@ -183,7 +192,17 @@ class Algorithm:
             return 100
         return -1
 
-    # Returns the possible actions of a state
+    # Returns the direct neighbors of a cell
+    def direct_neighbors(self, state):
+        (x,y) = state
+        top = (x-1, y) if (x-1) > -1 else None
+        bottom = (x+1, y) if (x+1) < self.grid_x else None
+        right = (x, y+1) if (y+1) < self.grid_y else None
+        left = (x, y-1) if (y-1) > -1 else None
+
+        return [top,bottom,right,left]
+
+    # Finds the available actions of a cell
     def find_possible_actions(self, state):
         actions = []
         direct_neighbors = Utility.direct_neighbors(state, self.grid_x, self.grid_y)

@@ -1,5 +1,7 @@
 from enum import Enum
 
+___author = "Abdul Rubaye"
+
 
 # The enum for Cell Type
 class Type(Enum):
@@ -22,6 +24,6 @@ class Color(Enum):
 # The grid world properties
 class World(Enum):
     CELL_WIDTH = 80
-    X=7
-    Y=7
+    X=8
+    Y=8
 
