@@ -1,6 +1,6 @@
 from random import *
-import random
 import Cell
+import Utility
 
 ___author = "Abdul Rubaye"
 
@@ -59,9 +59,10 @@ class Algorithm:
         for i in range(50):
             current_state = self.initial_state()
 
-            while current_state != self.goal:
+            tries_to_terminate_episode = 0
+            while current_state != self.goal and tries_to_terminate_episode <= 100:
                 actions = self.find_possible_actions(current_state)
-                rand_action = self.random_pick(self.stochastic_probabilities(current_state))
+                rand_action = Utility.random_pick(self.stochastic_probabilities(current_state))
                 next_state = actions[rand_action]
 
                 # policyType = [softmax = 0, e-greedy = 1]
@@ -105,7 +106,7 @@ class Algorithm:
         if next_state is None:
             next_state = current
             was_none = True
-        (x,y) = next_state
+        (x, y) = next_state
 
         index = self.max_q_index(next_state)
         max = self.qMatrix[x][y][index]
@@ -123,7 +124,6 @@ class Algorithm:
         else:
 
             q_a = self.reward(next_state, was_none)+gamma*new_max
-
         return q_a
 
     # Returns the max value among all the q values of a state and the index of the max value
@@ -134,7 +134,7 @@ class Algorithm:
 
         max = self.q(state, 0)
         index = 0
-        for i in range (1,4):
+        for i in range(1,4):
             q = self.q(state, i)
             if q > max:
                 max = q
@@ -143,7 +143,6 @@ class Algorithm:
 
     # Returns a random initial state for an episode
     def initial_state(self):
-
         while True:
             rand_x = randint(0, self.grid_x-1)
             rand_y = randint(0, self.grid_y-1)
@@ -206,7 +205,7 @@ class Algorithm:
     # Finds the available actions of a cell
     def find_possible_actions(self, state):
         actions = []
-        direct_neighbors = self.direct_neighbors(state)
+        direct_neighbors = Utility.direct_neighbors(state, self.grid_x, self.grid_y)
 
         # adding those direct neighbors of state that are not obstacles and not in OL
         for i in range (4):

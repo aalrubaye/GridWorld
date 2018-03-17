@@ -167,17 +167,16 @@ class MainApp:
         if (i < self.grid_x) & (j < self.grid_y):
             if self.gridMatrix[j][i] == Cell.Type.CLEAR:
                 if (self.cell_radio_btn_val.get() == 2) & (self.is_start_created is False):
-                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,
-                                          fill=Cell.Color.START, width=1)
+                    self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth, fill=Cell.Color.START, width=1)
                     self.grid.create_text(((i+0.5)*self.cellWidth, (j+0.5)*self.cellWidth), text="Start", fill='black')
                     self.gridMatrix[j][i] = Cell.Type.START
-                    self.start = (j,i)
+                    self.start = (j, i)
                     self.is_start_created = True
                 elif (self.cell_radio_btn_val.get() == 3) & (self.is_goal_created is False):
                     self.grid.create_rectangle(i*self.cellWidth, j*self.cellWidth, (i+1)*self.cellWidth, (j+1)*self.cellWidth,fill=Cell.Color.GOAL, width=1)
                     self.grid.create_text(((i+0.5)*self.cellWidth, (j+0.5)*self.cellWidth), text="Goal", fill='black')
                     self.gridMatrix[j][i] = Cell.Type.GOAL
-                    self.goal = (j,i)
+                    self.goal = (j, i)
                     self.is_goal_created = True
 
     # Resets the start cell or goal cell via click event
@@ -225,8 +224,8 @@ class MainApp:
         Label(self.rightFrame, text="Select the type of the heat map:").grid(row=self.get_elements_order(), column=1, sticky=W)
         self.create_radio_buttons("Total Reward Heat Map", "Polygon Heat Map", self.heatmap_radio_btn_val)
         self.horizontal_line()
-        self.alpha_entry = Entry(self.rightFrame, textvariable=self.alpha_text_var)
         Label(self.rightFrame, text="alpha:").grid(row=self.get_elements_order(), column=1, sticky=W)
+        self.alpha_entry = Entry(self.rightFrame, textvariable=self.alpha_text_var)
         self.alpha_entry.insert(0, "1")
         self.alpha_entry.grid(row=self.get_elements_order(), column=1, sticky=W)
         Label(self.rightFrame, text="gamma:").grid(row=self.get_elements_order(), column=1, sticky=W)
@@ -256,7 +255,6 @@ class MainApp:
             self.qMatrix = self.qlearner.soft_max_policy(self.goal, (alpha,gamma))
             self.qMatrix_calculated = True
             tt.put(0)
-            #todo disable the radio button so no more interactions occure
         elif self.policy_radio_btn_val.get() == 3:
             self.qMatrix = self.qlearner.e_greedy_policy(self.goal, (alpha, gamma))
             self.qMatrix_calculated = True
@@ -270,7 +268,7 @@ class MainApp:
             for i in range(self.grid_x):
                 for j in range(self.grid_y):
                     if self.gridMatrix[i][j] == Cell.Type.CLEAR:
-                        self.heat_map(j, i, self.qMatrix[i][j])
+                        self.heat_map(j, i)
                     if self.gridMatrix[i][j] == Cell.Type.GOAL:
                         self.grid.create_text(((j+0.5)*self.cellWidth, (i+0.5)*self.cellWidth), text="Goal", fill='black')
 
@@ -296,13 +294,13 @@ class MainApp:
                 path.append(next_state)
             current = next_state
         (path_color, start_color) = self.get_path_color()
-        for (i,j) in path:
-            if (i,j) == self.start:
+        for (i, j) in path:
+            if (i, j) == self.start:
                 self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill=start_color, width=1)
                 self.grid.create_text(((j+0.5)*self.cellWidth, (i+0.5)*self.cellWidth), text="Start", fill='black')
             else:
                 self.grid.create_rectangle(j*self.cellWidth, i*self.cellWidth, (j+1)*self.cellWidth, (i+1)*self.cellWidth,fill=path_color, width=1)
-                self.insert_text_ql(j,i,self.qMatrix[i][j])
+                self.insert_text_ql(j,i)
 
     # the main function of the A* algorithm
     def a_star(self):
@@ -348,10 +346,10 @@ class MainApp:
         self.new_thread.start()
         self.root.after(1, self.listen_for_result())
 
-    # Fetches the results and renderds them via threading
+    # Fetches the results and renders them via threading
     def listen_for_result(self):
         try:
-            res = self.thread_queue.get(0)
+            self.thread_queue.get(0)
             if self.qMatrix_calculated is True:
                 self.populate_q_to_graph()
                 if self.pause is False:

@@ -1,6 +1,7 @@
 import Utility
 import RouteNode
 import Cell
+import Utility
 
 ___author = "Abdul Rubaye"
 
@@ -163,4 +164,3 @@ class Algorithm:
             self.close_list.append(node)
             self.open_list.remove(node)
             return node
-
